@@ -1,15 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { databases, DATABASE_ID, COLLECTIONS } from '../appwrite/config';
+import { databases, client, DATABASE_ID, COLLECTIONS } from '../appwrite/config';
 import { ID, Query } from 'appwrite';
 // import { generatePlayerTasks } from '../utils/taskGenerator';
-
 function AdminDashboard() {
   const { user, logout, isAdmin } = useAuth();
   const [players, setPlayers] = useState([]);
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [gameState, setGameState] = useState('waiting');
-  const [emergencyMeetingActive, setEmergencyMeetingActive] = useState(false);
+  // const [emergencyMeetingActive, setEmergencyMeetingActive] = useState(false);
   const [error, setError] = useState(null);
   const [gameSummary, setGameSummary] = useState({
     total: 0,
@@ -46,9 +45,21 @@ function AdminDashboard() {
   };
 
   useEffect(() => {
-    fetchPlayers();
+    const unsubscribe = client.subscribe([
+      `databases.${DATABASE_ID}.collections.${COLLECTIONS.PLAYERS}.documents`,
+    ], (response) => {
+      if (response.events.includes(`databases.${DATABASE_ID}.collections.${COLLECTIONS.PLAYERS}.documents.update`)) {
+        // Refresh players list when any player is updated
+        fetchPlayers();
+      }
+    });
+
+    return () => {
+      unsubscribe();
+    };
   }, []);
 
+  fetchPlayers();
   const handleStartGame = async () => {
     try {
       await databases.createDocument(

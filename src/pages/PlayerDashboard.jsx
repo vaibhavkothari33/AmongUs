@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { databases, DATABASE_ID, COLLECTIONS } from '../appwrite/config';
+import { databases,client, DATABASE_ID, COLLECTIONS } from '../appwrite/config';
 import { Query } from 'appwrite';
 import { useNavigate } from 'react-router-dom';
 import { ID } from 'appwrite';
@@ -140,48 +140,48 @@ function PlayerDashboard() {
         }
     }, [user]);
 
-    const fetchTasks = async () => {
-        try {
-            setIsLoading(true);
-            if (!user?.playerData?.$id) return;
+    // const fetchTasks = async () => {
+    //     try {
+    //         setIsLoading(true);
+    //         if (!user?.playerData?.$id) return;
 
-            const response = await databases.listDocuments(
-                DATABASE_ID,
-                COLLECTIONS.TASKS,
-                [
-                    Query.equal('playerId', user.playerData.$id),
-                    Query.orderAsc('order')
-                ]
-            );
+    //         const response = await databases.listDocuments(
+    //             DATABASE_ID,
+    //             COLLECTIONS.TASKS,
+    //             [
+    //                 Query.equal('playerId', user.playerData.$id),
+    //                 Query.orderAsc('order')
+    //             ]
+    //         );
 
-            // If no tasks exist, generate and create tasks for the player
-            if (response.documents.length === 0) {
-                const newTasks = generatePlayerTasks(user.playerData.$id);
+    //         // If no tasks exist, generate and create tasks for the player
+    //         if (response.documents.length === 0) {
+    //             const newTasks = generatePlayerTasks(user.playerData.$id);
 
-                // Create tasks in the database
-                const createdTasks = await Promise.all(
-                    newTasks.map(task =>
-                        databases.createDocument(
-                            DATABASE_ID,
-                            COLLECTIONS.TASKS,
-                            ID.unique(),
-                            task
-                        )
-                    )
-                );
+    //             // Create tasks in the database
+    //             const createdTasks = await Promise.all(
+    //                 newTasks.map(task =>
+    //                     databases.createDocument(
+    //                         DATABASE_ID,
+    //                         COLLECTIONS.TASKS,
+    //                         ID.unique(),
+    //                         task
+    //                     )
+    //                 )
+    //             );
 
-                processTaskResponse({ documents: createdTasks });
-            } else {
-                processTaskResponse(response);
-            }
-        } catch (error) {
-            console.error('Error fetching tasks:', error);
-            setCurrentTask(null);
-            setTasks([]);
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    //             processTaskResponse({ documents: createdTasks });
+    //         } else {
+    //             processTaskResponse(response);
+    //         }
+    //     } catch (error) {
+    //         console.error('Error fetching tasks:', error);
+    //         setCurrentTask(null);
+    //         setTasks([]);
+    //     } finally {
+    //         setIsLoading(false);
+    //     }
+    // };
 
     // In the processTaskResponse function
     const processTaskResponse = (response) => {
@@ -232,6 +232,144 @@ function PlayerDashboard() {
             console.error('Error completing task:', error);
         }
     };
+
+    useEffect(() => {
+        const unsubscribe = client.subscribe([
+            `databases.${DATABASE_ID}.collections.${COLLECTIONS.PLAYERS}.documents`,
+        ], (response) => {
+            if (response.events.includes(`databases.${DATABASE_ID}.collections.${COLLECTIONS.PLAYERS}.documents.update`)) {
+                if (user?.playerData?.$id === response.payload.$id) {
+                    setGameStatus(response.payload.status);
+                    if (response.payload.status === 'dead') {
+                        navigate('/spectator');
+                    } else if (response.payload.role === 'imposter') {
+                        navigate('/imposter');
+                    }
+                }
+            }
+        });
+    
+        return () => {
+            unsubscribe();
+        };
+    }, [user]);
+
+    // Existing task fetching logic (kept from previous implementation)
+    useEffect(() => {
+        if (user?.playerData?.$id) {
+            fetchTasks();
+        }
+    }, [user]);
+
+    const fetchTasks = async () => {
+        try {
+            setIsLoading(true);
+            if (!user?.playerData?.$id) return;
+
+            const response = await databases.listDocuments(
+                DATABASE_ID,
+                COLLECTIONS.TASKS,
+                [
+                    Query.equal('playerId', user.playerData.$id),
+                    Query.orderAsc('order')
+                ]
+            );
+
+            // If no tasks exist, generate and create tasks for the player
+            if (response.documents.length === 0) {
+                const newTasks = generatePlayerTasks(user.playerData.$id);
+
+                // Create tasks in the database
+                const createdTasks = await Promise.all(
+                    newTasks.map(task =>
+                        databases.createDocument(
+                            DATABASE_ID,
+                            COLLECTIONS.TASKS,
+                            ID.unique(),
+                            task
+                        )
+                    )
+                );
+
+                processTaskResponse({ documents: createdTasks });
+            } else {
+                processTaskResponse(response);
+            }
+        } catch (error) {
+            console.error('Error fetching tasks:', error);
+            setCurrentTask(null);
+            setTasks([]);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // In the processTaskResponse function
+    // const processTaskResponse = (response) => {
+    //     const sortedTasks = response.documents.sort((a, b) => a.order - b.order);
+    //     const currentTask = sortedTasks.find(task =>
+    //         task.visible === 'true' && task.completed === 'false'
+    //     );
+
+    //     setCurrentTask(currentTask || null);
+    //     setTasks(sortedTasks);
+    //     setGameStatus(user.playerData.status);
+    // };
+
+    // In the completed tasks section of the JSX
+    {
+        tasks.filter(task => task.completed === 'true').map((task) => (
+            <div key={task.$id} className="bg-gray-700/50 rounded-lg p-4">
+                <div className="flex justify-between items-start">
+                    <div>
+                        <span className="px-3 py-1 rounded bg-green-500">
+                            Completed
+                        </span>
+                    </div>
+                    <div>
+                        <span className={`px-3 py-1 rounded ${task.approved === 'true' ? 'bg-green-500' : 'bg-yellow-500'
+                            }`}>
+                            {task.approved === 'true' ? 'Approved' : 'Waiting Approval'}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        ))
+    }
+
+    // const handleCompleteTask = async (taskId) => {
+    //     try {
+    //         // Only mark as completed, don't change visibility yet
+    //         await databases.updateDocument(
+    //             DATABASE_ID,
+    //             COLLECTIONS.TASKS,
+    //             taskId,
+    //             {
+    //                 completed: 'true'  // Keep as string for Appwrite
+    //             }
+    //         );
+    //         await fetchTasks();
+    //     } catch (error) {
+    //         console.error('Error completing task:', error);
+    //     }
+    // };
+
+    useEffect(() => {
+      const unsubscribe = client.subscribe([
+        `databases.${DATABASE_ID}.collections.${COLLECTIONS.EVENTS}.documents`,
+      ], (response) => {
+        if (response.events.includes(`databases.${DATABASE_ID}.collections.${COLLECTIONS.EVENTS}.documents.create`)) {
+          if (response.payload.type === 'emergency_meeting') {
+            const callerName = response.payload.callerName;
+            alert(`⚠️ EMERGENCY MEETING CALLED!\n${callerName} has called an emergency meeting!`);
+          }
+        }
+      });
+    
+      return () => {
+        unsubscribe();
+      };
+    }, []);
 
     if (isLoading) {
         return (

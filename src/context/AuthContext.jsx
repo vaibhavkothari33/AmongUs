@@ -1,5 +1,5 @@
-import { createContext, useState, useContext, useEffect } from 'react';
-import { account, databases, DATABASE_ID, COLLECTIONS } from '../appwrite/config';
+import { createContext, useState, useContext, useEffect, useRef } from 'react';
+import { account, databases, DATABASE_ID, COLLECTIONS, client } from '../appwrite/config';
 import { ID, Query } from 'appwrite';
 import { useNavigate } from 'react-router-dom';
 import { generatePlayerTasks } from '../utils/taskGenerator';
@@ -11,9 +11,22 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
+  const subscriptionRef = useRef(null);
 
   useEffect(() => {
     checkUser();
+    
+    // Cleanup function that runs when component unmounts
+    return () => {
+      // Make sure to unsubscribe when the component unmounts
+      if (subscriptionRef.current) {
+        try {
+          subscriptionRef.current();
+        } catch (error) {
+          console.log('Error unsubscribing:', error);
+        }
+      }
+    };
   }, []);
 
   const checkUser = async () => {
@@ -40,6 +53,9 @@ export function AuthProvider({ children }) {
 
       let playerData;
       if (playerDoc.documents.length === 0) {
+        // Generate initial tasks for new player
+        const initialTasks = generatePlayerTasks();
+        
         // Only create new player if none exists
         playerData = await databases.createDocument(
           DATABASE_ID,
@@ -51,7 +67,10 @@ export function AuthProvider({ children }) {
             email: accountDetails.email,
             isAdmin: 'false',
             status: 'alive',
-            role: 'crewmate' // Set default role
+            role: 'crewmate', // Set default role
+            tasks: initialTasks,
+            score: 0,
+            createdAt: new Date().toISOString()
           }
         );
 
@@ -67,8 +86,15 @@ export function AuthProvider({ children }) {
         setIsAdmin(playerData.isAdmin === 'true');
       }
       
-      // Navigate based on role
-      if (playerData.role === 'imposter') {
+      // Setup real-time subscription after user is confirmed
+      setupRealtimeSubscription(playerData.$id);
+      
+      // Navigate based on role and status
+      if (playerData.isAdmin === 'true') {
+        navigate('/admin');
+      } else if (playerData.status === 'dead') {
+        navigate('/spectator');
+      } else if (playerData.role === 'imposter') {
         navigate('/imposter');
       } else {
         navigate('/player');
@@ -80,6 +106,55 @@ export function AuthProvider({ children }) {
       setIsAdmin(false);
       navigate('/login');
       setLoading(false);
+    }
+  };
+
+  const setupRealtimeSubscription = (playerDocId) => {
+    // Clean up any existing subscription
+    if (subscriptionRef.current) {
+      try {
+        subscriptionRef.current();
+      } catch (error) {
+        console.log('Error unsubscribing:', error);
+      }
+    }
+
+    // Create a new subscription with error handling
+    try {
+      const unsubscribe = client.subscribe(
+        [`databases.${DATABASE_ID}.collections.${COLLECTIONS.PLAYERS}.documents.${playerDocId}`],
+        (response) => {
+          console.log('Realtime update received:', response);
+          
+          if (response.events.includes(`databases.${DATABASE_ID}.collections.${COLLECTIONS.PLAYERS}.documents.${playerDocId}.update`)) {
+            // Update local user data
+            setUser(prevUser => ({
+              ...prevUser,
+              playerData: response.payload
+            }));
+            
+            setIsAdmin(response.payload.isAdmin === 'true');
+
+            // Handle role/status changes
+            if (response.payload.isAdmin === 'true') {
+              navigate('/admin');
+            } else if (response.payload.status === 'dead') {
+              navigate('/spectator');
+            } else if (response.payload.role === 'imposter') {
+              navigate('/imposter');
+            } else {
+              navigate('/player');
+            }
+          }
+        }
+      );
+      
+      // Store the unsubscribe function in the ref for later cleanup
+      subscriptionRef.current = unsubscribe;
+      
+      console.log('Realtime subscription setup for player:', playerDocId);
+    } catch (error) {
+      console.error('Failed to set up realtime subscription:', error);
     }
   };
 
@@ -101,6 +176,16 @@ export function AuthProvider({ children }) {
 
   const logout = async () => {
     try {
+      // Clean up subscription before logging out
+      if (subscriptionRef.current) {
+        try {
+          subscriptionRef.current();
+          subscriptionRef.current = null;
+        } catch (error) {
+          console.log('Error unsubscribing:', error);
+        }
+      }
+      
       await account.deleteSession('current');
       setUser(null);
       setIsAdmin(false);
@@ -110,8 +195,34 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const updateUserData = async (updatedData) => {
+    if (!user || !user.playerData) return;
+    
+    try {
+      const updated = await databases.updateDocument(
+        DATABASE_ID,
+        COLLECTIONS.PLAYERS,
+        user.playerData.$id,
+        updatedData
+      );
+      
+      // Let the realtime subscription handle the update
+      return updated;
+    } catch (error) {
+      console.error('Failed to update user data:', error);
+      throw error;
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading, isAdmin }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      login, 
+      logout, 
+      loading, 
+      isAdmin,
+      updateUserData
+    }}>
       {!loading && children}
     </AuthContext.Provider>
   );
