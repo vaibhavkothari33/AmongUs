@@ -20,6 +20,7 @@ function AdminDashboard() {
   const [selectedTask, setSelectedTask] = useState(null);
   const [isTaskDetailOpen, setIsTaskDetailOpen] = useState(false);
   const [playerTasks, setPlayerTasks] = useState([]);
+  const [playerProgress, setPlayerProgress] = useState({});
 
   // Fetch players and game summary
   const fetchPlayers = async () => {
@@ -41,6 +42,34 @@ function AdminDashboard() {
         imposters: fetchedPlayers.filter(p => p.role === 'imposter').length
       };
       setGameSummary(summary);
+
+      // Fetch task progress for each player
+      const progressData = {};
+      await Promise.all(fetchedPlayers.map(async (player) => {
+        try {
+          const tasksResponse = await databases.listDocuments(
+            DATABASE_ID,
+            COLLECTIONS.TASKS,
+            [Query.equal('playerId', player.$id)]
+          );
+          
+          const tasks = tasksResponse.documents;
+          const currentTask = tasks.find(t => t.visible === 'true');
+          const completedTasks = tasks.filter(t => t.completed === 'true').length;
+          const totalTasks = tasks.length;
+          
+          progressData[player.$id] = {
+            currentTask: currentTask || null,
+            completedTasks,
+            totalTasks,
+            progress: totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
+          };
+        } catch (err) {
+          console.error(`Error fetching tasks for player ${player.name}:`, err);
+        }
+      }));
+      
+      setPlayerProgress(progressData);
     } catch (error) {
       console.error('Error fetching players:', error);
       setError('Failed to fetch players');
@@ -57,7 +86,23 @@ function AdminDashboard() {
         [Query.equal('playerId', playerId)]
       );
       
-      setPlayerTasks(tasksResponse.documents);
+      const tasks = tasksResponse.documents;
+      setPlayerTasks(tasks);
+      
+      // Update player progress data
+      const currentTask = tasks.find(t => t.visible === 'true');
+      const completedTasks = tasks.filter(t => t.completed === 'true').length;
+      const totalTasks = tasks.length;
+      
+      setPlayerProgress(prev => ({
+        ...prev,
+        [playerId]: {
+          currentTask: currentTask || null,
+          completedTasks,
+          totalTasks,
+          progress: totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
+        }
+      }));
     } catch (error) {
       console.error('Error fetching tasks for player:', error);
       setError('Failed to fetch player tasks');
@@ -216,6 +261,9 @@ function AdminDashboard() {
           approved: 'true'
         });
       }
+      
+      // Refresh player data to update progress
+      await fetchPlayers();
     } catch (error) {
       console.error('Error approving task:', error);
       setError('Failed to approve task');
@@ -382,6 +430,46 @@ function AdminDashboard() {
       </div>
     );
   };
+  
+  // Function to render task progress badge
+  const renderTaskProgressBadge = (playerId) => {
+    const progress = playerProgress[playerId];
+    
+    if (!progress || !progress.currentTask) {
+      return (
+        <span className="px-2 py-1 rounded text-sm bg-gray-600">
+          No active task
+        </span>
+      );
+    }
+    
+    return (
+      <div className="flex flex-col">
+        <div className="flex items-center gap-2">
+          <span className={`px-2 py-1 rounded text-sm ${
+            progress.currentTask.completed === 'true' 
+              ? 'bg-green-500' 
+              : 'bg-blue-500'
+          }`}>
+            Task {progress.currentTask.order || '?'}: {
+              progress.currentTask.completed === 'true' 
+                ? 'Completed' 
+                : 'In Progress'
+            }
+          </span>
+          <span className="text-xs text-gray-400">
+            {progress.completedTasks}/{progress.totalTasks} done
+          </span>
+        </div>
+        <div className="w-full bg-gray-600 rounded-full h-2 mt-1">
+          <div 
+            className="bg-blue-500 h-2 rounded-full" 
+            style={{ width: `${progress.progress}%` }}
+          ></div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gray-900 text-white p-4">
@@ -484,15 +572,23 @@ function AdminDashboard() {
                       
                       <div>
                         <h3 className="font-semibold">{player.name}</h3>
-                        <p className="text-sm text-gray-400">
-                          Status: {player.status}
+                        <div className="text-sm text-gray-400 flex items-center gap-2">
+                          <span className={`inline-block w-2 h-2 rounded-full ${
+                            player.status === 'alive' ? 'bg-green-500' : 'bg-red-500'
+                          }`}></span>
+                          <span>{player.status}</span>
                           {player.isAdmin === 'true' && (
-                            <span className="ml-2 text-yellow-500">(Admin)</span>
+                            <span className="text-yellow-500">(Admin)</span>
                           )}
                           {player.role === 'imposter' && (
-                            <span className="ml-2 text-red-500">(Imposter)</span>
+                            <span className="text-red-500">(Imposter)</span>
                           )}
-                        </p>
+                        </div>
+                        
+                        {/* Task Progress Indicator */}
+                        <div className="mt-2">
+                          {renderTaskProgressBadge(player.$id)}
+                        </div>
                       </div>
                     </div>
                     <div className="flex gap-2">
@@ -552,26 +648,51 @@ function AdminDashboard() {
 
           {selectedPlayer && (
             <div className="bg-gray-800 rounded-lg p-4">
-              <div className="flex items-center space-x-3 mb-4">
-                {/* Player Avatar (larger) */}
-                {typeof selectedPlayer.profileImage === 'string' ? (
-                  <img 
-                    src={selectedPlayer.profileImage} 
-                    alt={`${selectedPlayer.name}'s avatar`}
-                    className="w-16 h-16 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="w-16 h-16">
-                    {getPlayerAvatar(selectedPlayer)}
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
+                <div className="flex items-center space-x-3">
+                  {/* Player Avatar (larger) */}
+                  {typeof selectedPlayer.profileImage === 'string' ? (
+                    <img 
+                      src={selectedPlayer.profileImage} 
+                      alt={`${selectedPlayer.name}'s avatar`}
+                      className="w-16 h-16 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-16 h-16">
+                      {getPlayerAvatar(selectedPlayer)}
+                    </div>
+                  )}
+                  
+                  <div>
+                    <h2 className="text-xl font-semibold">{selectedPlayer.name}'s Tasks</h2>
+                    <p className="text-sm text-gray-400">
+                      Role: {selectedPlayer.role || 'Crewmate'} | Status: {selectedPlayer.status}
+                    </p>
+                  </div>
+                </div>
+                
+                {/* Task progress summary */}
+                {playerProgress[selectedPlayer.$id] && (
+                  <div className="mt-4 md:mt-0 bg-gray-700 p-3 rounded">
+                    <div className="flex items-center gap-4">
+                      <div className="text-xl font-bold">
+                        {playerProgress[selectedPlayer.$id].progress}%
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-300">Task Progress</p>
+                        <p className="text-xs text-gray-400">
+                          {playerProgress[selectedPlayer.$id].completedTasks} of {playerProgress[selectedPlayer.$id].totalTasks} tasks completed
+                        </p>
+                      </div>
+                    </div>
+                    <div className="w-full bg-gray-600 rounded-full h-3 mt-2">
+                      <div 
+                        className="bg-blue-500 h-3 rounded-full" 
+                        style={{ width: `${playerProgress[selectedPlayer.$id].progress}%` }}
+                      ></div>
+                    </div>
                   </div>
                 )}
-                
-                <div>
-                  <h2 className="text-xl font-semibold">{selectedPlayer.name}'s Tasks</h2>
-                  <p className="text-sm text-gray-400">
-                    Role: {selectedPlayer.role || 'Crewmate'} | Status: {selectedPlayer.status}
-                  </p>
-                </div>
               </div>
 
               {playerTasks.length === 0 ? (
@@ -581,13 +702,23 @@ function AdminDashboard() {
               ) : (
                 <div className="space-y-4">
                   {playerTasks.map((task) => (
-                    <div key={task.$id} className="bg-gray-700 rounded p-4">
+                    <div 
+                      key={task.$id} 
+                      className={`bg-gray-700 rounded p-4 ${
+                        task.visible === 'true' ? 'border-l-4 border-blue-500' : ''
+                      }`}
+                    >
                       <div className="flex justify-between items-start">
                         <div>
-                          <h3 className="font-semibold">{task.title}</h3>
-                          <p className="text-sm text-gray-400">{task.description}</p>
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-semibold">{task.title}</h3>
+                            {task.visible === 'true' && (
+                              <span className="bg-blue-500 text-xs px-2 py-1 rounded">CURRENT</span>
+                            )}
+                          </div>
+                          <p className="text-sm text-gray-400 mt-1">{task.description}</p>
                           <p className="text-xs text-gray-500 mt-1">
-                            Location: {task.location} | Type: {task.type}
+                            Location: {task.location} | Type: {task.type} | Order: {task.order || 'N/A'}
                           </p>
                           {task.externalLink && (
                             <a 
@@ -601,13 +732,25 @@ function AdminDashboard() {
                           )}
                         </div>
                         <div className="flex flex-col gap-2 items-end">
-                          <span className={`px-2 py-1 rounded text-sm ${
-                            task.completed === 'true' 
-                              ? 'bg-green-500' 
-                              : 'bg-yellow-500'
-                          }`}>
-                            {task.completed === 'true' ? 'Completed' : 'Pending'}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className={`px-2 py-1 rounded text-sm ${
+                              task.completed === 'true' 
+                                ? 'bg-green-500' 
+                                : 'bg-yellow-500'
+                            }`}>
+                              {task.completed === 'true' ? 'Completed' : 'Pending'}
+                            </span>
+                            {task.completed === 'true' && (
+                              <span className={`px-2 py-1 rounded text-sm ${
+                                task.approved === 'true' 
+                                  ? 'bg-green-700' 
+                                  : 'bg-gray-500'
+                              }`}>
+                                {task.approved === 'true' ? 'Approved' : 'Not Approved'}
+                              </span>
+                            )}
+                          </div>
+                          
                           {task.completed === 'true' && task.approved === 'false' && (
                             <button
                               onClick={() => handleApproveTask(task)}
@@ -616,13 +759,6 @@ function AdminDashboard() {
                               Approve Task
                             </button>
                           )}
-                          <span className={`px-2 py-1 rounded text-sm ${
-                            task.visible === 'true' 
-                              ? 'bg-blue-500' 
-                              : 'bg-gray-500'
-                          }`}>
-                            {task.visible === 'true' ? 'Current' : `Task ${task.order}`}
-                          </span>
                           <button
                             onClick={() => handleViewTaskDetails(task)}
                             className="bg-indigo-600 px-3 py-1 rounded hover:bg-indigo-700 text-sm mt-2"

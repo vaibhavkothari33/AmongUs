@@ -70,7 +70,7 @@ function PlayerDashboard() {
     // Emergency Meeting States
     const [emergencyMeetingCooldown, setEmergencyMeetingCooldown] = useState(0);
     const [emergencyMeetingInProgress, setEmergencyMeetingInProgress] = useState(false);
-    const EmergencyMeetingCooldown = 60; // 60 seconds cooldown
+    const EmergencyMeetingCooldown = 30; // 60 seconds cooldown
 
     // Emergency Meeting Countdown Timer
     useEffect(() => {
