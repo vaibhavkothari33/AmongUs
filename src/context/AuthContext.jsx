@@ -63,11 +63,12 @@ export function AuthProvider({ children }) {
           ID.unique(),
           {
             userId: accountDetails.$id,
+            playerId: accountDetails.$id, // Add this line
             name: accountDetails.name,
             email: accountDetails.email,
             isAdmin: 'false',
             status: 'alive',
-            role: 'crewmate', // Set default role
+            role: 'crewmate',
             tasks: initialTasks,
             score: 0,
             createdAt: new Date().toISOString()
