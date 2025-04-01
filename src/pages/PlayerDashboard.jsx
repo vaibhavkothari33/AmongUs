@@ -28,14 +28,14 @@ const PHYSICAL_TASKS = [
         description: 'Visit the sensor room and manually calibrate all environmental sensors.',
         location: 'Sensor Room',
         type: 'physical',
-        externalLink: ''
+        externalLink: 'https://among-us-vk.vercel.app/tasks/calibrate'
     },
     {
         title: 'Check Electrical Wiring',
         description: 'Inspect and report the status of electrical connections in the maintenance panel.',
         location: 'Electrical',
         type: 'physical',
-        externalLink: ''
+        externalLink: 'https://among-us-vk.vercel.app/tasks/electrical'
     }
 ];
 
@@ -121,32 +121,31 @@ function PlayerDashboard() {
             console.error('No playerId provided to generatePlayerTasks');
             return [];
         }
-
+    
         const allTasks = [
             CODING_TASKS[Math.floor(Math.random() * CODING_TASKS.length)],
             PHYSICAL_TASKS[Math.floor(Math.random() * PHYSICAL_TASKS.length)],
             EXTERNAL_TASKS[Math.floor(Math.random() * EXTERNAL_TASKS.length)]
         ];
-
+    
         return allTasks.map((task, index) => ({
             title: task.title,
             description: task.description,
             location: task.location,
             type: task.type,
             externalLink: task.externalLink,
-            playerId: playerId,  // Ensure playerId is included
+            playerId: playerId,  // Use the playerId parameter passed to the function
             completed: 'false',
             approved: 'false',
             visible: index === 0 ? 'true' : 'false',
             order: index + 1
         }));
     };
-
     // Process task response function
     const processTaskResponse = (response) => {
         const sortedTasks = response.documents.sort((a, b) => a.order - b.order);
         const currentTask = sortedTasks.find(task =>
-            task.visible === 'true' && task.completed === 'false'
+            task.visible === true && task.completed === false
         );
 
         setCurrentTask(currentTask || null);
@@ -157,62 +156,116 @@ function PlayerDashboard() {
     // Fetch tasks from database
     const fetchTasks = async () => {
         try {
-            setIsLoading(true);
+          setIsLoading(true); // Add loading state
+          
+          if (!user?.playerData?.$id) {
+            console.error('No user data available');
+            return;
+          }
+
+          const response = await databases.listDocuments(
+            DATABASE_ID,
+            COLLECTIONS.TASKS,
+            [
+              Query.equal('playerId', user.playerData.$id),
+              Query.orderAsc('order')  // Add ordering
+            ]
+          );
+      
+          if (response.documents.length === 0) {
+            const initialTasks = generatePlayerTasks(user.playerData.$id);
             
-            // Safety check for user and playerData
-            if (!user?.playerData?.$id) {
-                console.error('No player ID available, user:', user);
-                setIsLoading(false);
-                return;
-            }
-
-            console.log("Fetching tasks for player ID:", user.playerData.$id);
-
-            const response = await databases.listDocuments(
+            const createdTasks = await Promise.all(initialTasks.map(task => {
+              return databases.createDocument(
                 DATABASE_ID,
                 COLLECTIONS.TASKS,
-                [
-                    Query.equal('playerId', user.playerData.$id),
-                    Query.orderAsc('order')
-                ]
-            );
-
-            console.log("Task response:", response);
-
-            // If no tasks exist, generate and create tasks for the player
-            if (response.documents.length === 0) {
-                console.log("No tasks found, generating new tasks");
-                const newTasks = generatePlayerTasks(user.playerData.$id);
-                
-                console.log("Generated tasks:", newTasks);
-
-                if (newTasks.length === 0) {
-                    throw new Error('Failed to generate tasks');
+                ID.unique(),
+                {
+                  playerId: user.playerData.$id,
+                  title: task.title,
+                  description: task.description,
+                  location: task.location,
+                  type: task.type,
+                  approved: false,
+                  visible: task.visible === 'true',
+                  order: parseInt(task.order),
+                  externalLink: task.externalLink || 'https://among-us-vk.vercel.app',
+                  completed: false
                 }
-
-                // Create tasks in the database
-                const createdTasks = await Promise.all(
-                    newTasks.map(task =>
-                        databases.createDocument(
-                            DATABASE_ID,
-                            COLLECTIONS.TASKS,
-                            ID.unique(),
-                            task
-                        )
-                    )
-                );
-
-                console.log("Created tasks:", createdTasks);
-                processTaskResponse({ documents: createdTasks });
-            } else {
-                processTaskResponse(response);
-            }
+              );
+            }));
+            
+            processTaskResponse({ documents: createdTasks });
+          } else {
+            processTaskResponse(response);
+          }
         } catch (error) {
-            console.error('Error fetching/creating tasks:', error);
-            setCurrentTask(null);
-            setTasks([]);
+          console.error('Error fetching/creating tasks:', error);
         } finally {
-            setIsLoading(false);
+          setIsLoading(false); // Clear loading state
+        }
+    };
+
+    // Update the subscription setup
+    useEffect(() => {
+        if (!user?.playerData?.$id) return;
+
+        let retryCount = 0;
+        const maxRetries = 3;
+        
+        const setupSubscription = async () => {
+            try {
+                const unsubscribe = client.subscribe([
+                    `databases.${DATABASE_ID}.collections.${COLLECTIONS.TASKS}.documents`,
+                ], response => {
+                    if (response.events.includes(`databases.${DATABASE_ID}.collections.${COLLECTIONS.TASKS}.documents.update`)) {
+                        if (response.payload.playerId === user.playerData.$id) {
+                            fetchTasks();
+                        }
+                    }
+                });
+
+                return unsubscribe;
+            } catch (error) {
+                console.error('Subscription error:', error);
+                if (retryCount < maxRetries) {
+                    retryCount++;
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    return setupSubscription();
+                }
+            }
+        };
+
+        const subscription = setupSubscription();
+        
+        return () => {
+            if (subscription) {
+                subscription.then(unsubscribe => unsubscribe && unsubscribe());
+            }
+        };
+    }, [user]);
+
+    const completeTask = async (taskId) => {
+        try {
+          const updatedTask = await databases.updateDocument(
+            DATABASE_ID,
+            COLLECTIONS.TASKS,
+            taskId,
+            {
+              completed: true  // Changed from 'true' to true
+            }
+          );
+          
+          setTasks(prevTasks => 
+            prevTasks.map(task => 
+              task.$id === taskId ? {...task, completed: true} : task
+            )
+          );
+          
+          return updatedTask;
+        } catch (error) {
+          console.error('Error completing task:', error);
+          throw error;
         }
     };
 
@@ -225,8 +278,8 @@ function PlayerDashboard() {
                 COLLECTIONS.TASKS,
                 taskId,
                 { 
-                    completed: 'true',
-                    playerId: user.playerData.$id // Ensure playerId is included
+                    completed: true,  // Changed from 'true' to true
+                    playerId: user.playerData.$id
                 }
             );
 
@@ -240,8 +293,8 @@ function PlayerDashboard() {
                     COLLECTIONS.TASKS,
                     nextTask.$id,
                     { 
-                        visible: 'true',
-                        playerId: user.playerData.$id // Ensure playerId is included
+                        visible: true,  // Changed from 'true' to true
+                        playerId: user.playerData.$id
                     }
                 );
             }
@@ -452,7 +505,7 @@ function PlayerDashboard() {
                         )}
                         
                         {/* Completed Tasks Section */}
-                        {tasks.filter(task => task.completed === 'true').map((task) => (
+                        {tasks.filter(task => task.completed === true).map((task) => (
                             <div key={task.$id} className="bg-gray-700/50 rounded-lg p-4">
                                 <div className="flex justify-between items-start">
                                     <div>
@@ -467,9 +520,9 @@ function PlayerDashboard() {
                                             Completed
                                         </span>
                                         <span className={`px-3 py-1 rounded ${
-                                            task.approved === 'true' ? 'bg-green-500' : 'bg-yellow-500'
+                                            task.approved === true ? 'bg-green-500' : 'bg-yellow-500'
                                         }`}>
-                                            {task.approved === 'true' ? 'Approved' : 'Waiting Approval'}
+                                            {task.approved === true ? 'Approved' : 'Waiting Approval'}
                                         </span>
                                     </div>
                                 </div>

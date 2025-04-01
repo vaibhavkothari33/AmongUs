@@ -17,12 +17,14 @@ function AdminDashboard() {
     dead: 0,
     imposters: 0
   });
+  const [selectedTask, setSelectedTask] = useState(null);
+  const [isTaskDetailOpen, setIsTaskDetailOpen] = useState(false);
+  const [playerTasks, setPlayerTasks] = useState([]);
 
   // Fetch players and game summary
   const fetchPlayers = async () => {
     try {
       // Implement logic to fetch players from your database
-      // This is a placeholder and should be replaced with actual Appwrite query
       const playersResponse = await databases.listDocuments(
         DATABASE_ID,
         COLLECTIONS.PLAYERS
@@ -45,9 +47,35 @@ function AdminDashboard() {
     }
   };
 
+  // Fetch tasks for a specific player
+  const fetchPlayerTasks = async (playerId) => {
+    try {
+      // Fetch tasks for the selected player
+      const tasksResponse = await databases.listDocuments(
+        DATABASE_ID,
+        COLLECTIONS.TASKS,
+        [Query.equal('playerId', playerId)]
+      );
+      
+      setPlayerTasks(tasksResponse.documents);
+    } catch (error) {
+      console.error('Error fetching tasks for player:', error);
+      setError('Failed to fetch player tasks');
+    }
+  };
+
   useEffect(() => {
     fetchPlayers();
   }, []);
+
+  // When selectedPlayer changes, fetch their tasks
+  useEffect(() => {
+    if (selectedPlayer) {
+      fetchPlayerTasks(selectedPlayer.$id);
+    } else {
+      setPlayerTasks([]);
+    }
+  }, [selectedPlayer]);
 
   const handleStartGame = async () => {
     try {
@@ -66,12 +94,18 @@ function AdminDashboard() {
         databases.updateDocument(
           DATABASE_ID,
           COLLECTIONS.TASKS,
-          player.tasks[0]?.$id,
+          player.tasks?.[0]?.$id,
           { visible: 'true' }
         )
       );
       
-      await Promise.all(tasksUpdate);
+      // Filter out any undefined tasks before Promise.all
+      const validTasksUpdate = tasksUpdate.filter(task => task !== undefined);
+      
+      if (validTasksUpdate.length > 0) {
+        await Promise.all(validTasksUpdate);
+      }
+      
       setGameState('active');
       await fetchPlayers();
     } catch (error) {
@@ -132,23 +166,12 @@ function AdminDashboard() {
   const handleToggleRole = async (playerId, currentRole) => {
     try {
       const newRole = currentRole === 'imposter' ? 'crewmate' : 'imposter';
-      const player = players.find(p => p.$id === playerId);
-
-      if (!player) {
-        throw new Error('Player not found');
-      }
-
+      
       await databases.updateDocument(
         DATABASE_ID,
         COLLECTIONS.PLAYERS,
         playerId,
-        {
-          role: newRole,
-          playerId: playerId,
-          name: player.name,
-          status: player.status || 'alive',
-          isAdmin: player.isAdmin || 'false'
-        }
+        { role: newRole }
       );
       await fetchPlayers();
     } catch (error) {
@@ -160,6 +183,7 @@ function AdminDashboard() {
   const handleToggleAdmin = async (playerId, currentAdminStatus) => {
     try {
       const newAdminStatus = currentAdminStatus === 'true' ? 'false' : 'true';
+      
       await databases.updateDocument(
         DATABASE_ID,
         COLLECTIONS.PLAYERS,
@@ -181,11 +205,182 @@ function AdminDashboard() {
         task.$id,
         { approved: 'true' }
       );
-      await fetchPlayers();
+      
+      if (selectedPlayer) {
+        await fetchPlayerTasks(selectedPlayer.$id);
+      }
+      
+      if (selectedTask?.$id === task.$id) {
+        setSelectedTask({
+          ...selectedTask,
+          approved: 'true'
+        });
+      }
     } catch (error) {
       console.error('Error approving task:', error);
       setError('Failed to approve task');
     }
+  };
+
+  const handleViewTaskDetails = (task) => {
+    setSelectedTask(task);
+    setIsTaskDetailOpen(true);
+  };
+
+  const closeTaskDetail = () => {
+    setIsTaskDetailOpen(false);
+    setSelectedTask(null);
+  };
+
+  // Task Detail Modal component
+  const TaskDetailModal = () => {
+    if (!selectedTask) return null;
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+        <div className="bg-gray-800 rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+          <div className="flex justify-between items-start mb-4">
+            <h2 className="text-xl font-bold">{selectedTask.title}</h2>
+            <button 
+              onClick={closeTaskDetail}
+              className="text-gray-400 hover:text-white"
+            >
+              ✕
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+              <p className="text-gray-400 text-sm">Status</p>
+              <div className="flex space-x-2 mt-1">
+                <span className={`px-2 py-1 rounded text-sm ${
+                  selectedTask.completed === 'true' 
+                    ? 'bg-green-500' 
+                    : 'bg-yellow-500'
+                }`}>
+                  {selectedTask.completed === 'true' ? 'Completed' : 'Pending'}
+                </span>
+                <span className={`px-2 py-1 rounded text-sm ${
+                  selectedTask.approved === 'true' 
+                    ? 'bg-green-700' 
+                    : 'bg-gray-500'
+                }`}>
+                  {selectedTask.approved === 'true' ? 'Approved' : 'Not Approved'}
+                </span>
+                <span className={`px-2 py-1 rounded text-sm ${
+                  selectedTask.visible === 'true' 
+                    ? 'bg-blue-500' 
+                    : 'bg-gray-500'
+                }`}>
+                  {selectedTask.visible === 'true' ? 'Current' : `Task ${selectedTask.order}`}
+                </span>
+              </div>
+            </div>
+            <div>
+              <p className="text-gray-400 text-sm">Location</p>
+              <p className="font-medium">{selectedTask.location || 'N/A'}</p>
+            </div>
+          </div>
+
+          <div className="mb-4">
+            <p className="text-gray-400 text-sm mb-1">Description</p>
+            <div className="bg-gray-700 p-3 rounded">
+              <p>{selectedTask.description}</p>
+            </div>
+          </div>
+
+          {selectedTask.steps && (
+            <div className="mb-4">
+              <p className="text-gray-400 text-sm mb-1">Steps</p>
+              <div className="bg-gray-700 p-3 rounded">
+                <ol className="list-decimal pl-5 space-y-1">
+                  {selectedTask.steps.split('\n').map((step, index) => (
+                    <li key={index}>{step}</li>
+                  ))}
+                </ol>
+              </div>
+            </div>
+          )}
+
+          {selectedTask.notes && (
+            <div className="mb-4">
+              <p className="text-gray-400 text-sm mb-1">Admin Notes</p>
+              <div className="bg-gray-700 p-3 rounded">
+                <p>{selectedTask.notes}</p>
+              </div>
+            </div>
+          )}
+
+          {selectedTask.evidenceRequired === 'true' && (
+            <div className="mb-4">
+              <p className="text-gray-400 text-sm mb-1">Evidence Required</p>
+              <div className="bg-gray-700 p-3 rounded">
+                <p>{selectedTask.evidenceInstructions || 'Player must submit evidence to complete this task.'}</p>
+              </div>
+            </div>
+          )}
+
+          {selectedTask.externalLink && (
+            <div className="mb-4">
+              <p className="text-gray-400 text-sm mb-1">External Resource</p>
+              <a 
+                href={selectedTask.externalLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-blue-600 text-white px-4 py-2 rounded inline-block hover:bg-blue-700"
+              >
+                Open External Resource
+              </a>
+            </div>
+          )}
+
+          {selectedTask.imageUrl && (
+            <div className="mb-4">
+              <p className="text-gray-400 text-sm mb-1">Task Image</p>
+              <div className="bg-gray-700 p-1 rounded">
+                <img 
+                  src={selectedTask.imageUrl} 
+                  alt="Task reference" 
+                  className="max-w-full rounded"
+                />
+              </div>
+            </div>
+          )}
+
+          {selectedTask.completed === 'true' && selectedTask.approved === 'false' && (
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={() => handleApproveTask(selectedTask)}
+                className="bg-green-600 px-4 py-2 rounded hover:bg-green-700"
+              >
+                Approve Completion
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const getPlayerAvatar = (player) => {
+    // If player has a profileImage property, use that
+    if (player.profileImage) {
+      return player.profileImage;
+    }
+    
+    // Default avatar color based on player name or id
+    const colors = ['bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-yellow-500', 'bg-pink-500', 'bg-indigo-500'];
+    const colorIndex = player.name ? player.name.charCodeAt(0) % colors.length : 0;
+    const color = colors[colorIndex];
+    
+    // Get initials from name
+    const initials = player.name ? player.name.charAt(0).toUpperCase() : '?';
+    
+    return (
+      <div className={`${color} rounded-full w-10 h-10 flex items-center justify-center text-white font-bold`}>
+        {initials}
+      </div>
+    );
   };
 
   return (
@@ -275,17 +470,30 @@ function AdminDashboard() {
                   onClick={() => setSelectedPlayer(player)}
                 >
                   <div className="flex justify-between items-center">
-                    <div>
-                      <h3 className="font-semibold">{player.name}</h3>
-                      <p className="text-sm text-gray-400">
-                        Status: {player.status}
-                        {player.isAdmin === 'true' && (
-                          <span className="ml-2 text-yellow-500">(Admin)</span>
-                        )}
-                        {player.role === 'imposter' && (
-                          <span className="ml-2 text-red-500">(Imposter)</span>
-                        )}
-                      </p>
+                    <div className="flex items-center space-x-3">
+                      {/* Player Avatar */}
+                      {typeof player.profileImage === 'string' ? (
+                        <img 
+                          src={player.profileImage} 
+                          alt={`${player.name}'s avatar`}
+                          className="w-10 h-10 rounded-full object-cover"
+                        />
+                      ) : (
+                        getPlayerAvatar(player)
+                      )}
+                      
+                      <div>
+                        <h3 className="font-semibold">{player.name}</h3>
+                        <p className="text-sm text-gray-400">
+                          Status: {player.status}
+                          {player.isAdmin === 'true' && (
+                            <span className="ml-2 text-yellow-500">(Admin)</span>
+                          )}
+                          {player.role === 'imposter' && (
+                            <span className="ml-2 text-red-500">(Imposter)</span>
+                          )}
+                        </p>
+                      </div>
                     </div>
                     <div className="flex gap-2">
                       <button
@@ -344,63 +552,96 @@ function AdminDashboard() {
 
           {selectedPlayer && (
             <div className="bg-gray-800 rounded-lg p-4">
-              <h2 className="text-xl font-semibold mb-4">
-                {selectedPlayer.name}'s Tasks
-              </h2>
+              <div className="flex items-center space-x-3 mb-4">
+                {/* Player Avatar (larger) */}
+                {typeof selectedPlayer.profileImage === 'string' ? (
+                  <img 
+                    src={selectedPlayer.profileImage} 
+                    alt={`${selectedPlayer.name}'s avatar`}
+                    className="w-16 h-16 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-16 h-16">
+                    {getPlayerAvatar(selectedPlayer)}
+                  </div>
+                )}
+                
+                <div>
+                  <h2 className="text-xl font-semibold">{selectedPlayer.name}'s Tasks</h2>
+                  <p className="text-sm text-gray-400">
+                    Role: {selectedPlayer.role || 'Crewmate'} | Status: {selectedPlayer.status}
+                  </p>
+                </div>
+              </div>
 
-              <div className="space-y-4">
-                {selectedPlayer.tasks?.map((task) => (
-                  <div key={task.$id} className="bg-gray-700 rounded p-4">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-semibold">{task.title}</h3>
-                        <p className="text-sm text-gray-400">{task.description}</p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          Location: {task.location} | Type: {task.type}
-                        </p>
-                        {task.externalLink && (
-                          <a 
-                            href={task.externalLink}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-400 hover:text-blue-300 text-sm mt-1 block"
-                          >
-                            View Task
-                          </a>
-                        )}
-                      </div>
-                      <div className="flex flex-col gap-2 items-end">
-                        <span className={`px-2 py-1 rounded text-sm ${
-                          task.completed === 'true' 
-                            ? 'bg-green-500' 
-                            : 'bg-yellow-500'
-                        }`}>
-                          {task.completed === 'true' ? 'Completed' : 'Pending'}
-                        </span>
-                        {task.completed === 'true' && task.approved === 'false' && (
+              {playerTasks.length === 0 ? (
+                <div className="bg-gray-700 rounded p-8 text-center">
+                  <p className="text-gray-400">No tasks found for this player.</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {playerTasks.map((task) => (
+                    <div key={task.$id} className="bg-gray-700 rounded p-4">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="font-semibold">{task.title}</h3>
+                          <p className="text-sm text-gray-400">{task.description}</p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            Location: {task.location} | Type: {task.type}
+                          </p>
+                          {task.externalLink && (
+                            <a 
+                              href={task.externalLink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-400 hover:text-blue-300 text-sm mt-1 block"
+                            >
+                              View Task
+                            </a>
+                          )}
+                        </div>
+                        <div className="flex flex-col gap-2 items-end">
+                          <span className={`px-2 py-1 rounded text-sm ${
+                            task.completed === 'true' 
+                              ? 'bg-green-500' 
+                              : 'bg-yellow-500'
+                          }`}>
+                            {task.completed === 'true' ? 'Completed' : 'Pending'}
+                          </span>
+                          {task.completed === 'true' && task.approved === 'false' && (
+                            <button
+                              onClick={() => handleApproveTask(task)}
+                              className="bg-green-600 px-3 py-1 rounded hover:bg-green-700 text-sm"
+                            >
+                              Approve Task
+                            </button>
+                          )}
+                          <span className={`px-2 py-1 rounded text-sm ${
+                            task.visible === 'true' 
+                              ? 'bg-blue-500' 
+                              : 'bg-gray-500'
+                          }`}>
+                            {task.visible === 'true' ? 'Current' : `Task ${task.order}`}
+                          </span>
                           <button
-                            onClick={() => handleApproveTask(task)}
-                            className="bg-green-600 px-3 py-1 rounded hover:bg-green-700 text-sm"
+                            onClick={() => handleViewTaskDetails(task)}
+                            className="bg-indigo-600 px-3 py-1 rounded hover:bg-indigo-700 text-sm mt-2"
                           >
-                            Approve Task
+                            View Details
                           </button>
-                        )}
-                        <span className={`px-2 py-1 rounded text-sm ${
-                          task.visible === 'true' 
-                            ? 'bg-blue-500' 
-                            : 'bg-gray-500'
-                        }`}>
-                          {task.visible === 'true' ? 'Current' : `Task ${task.order}`}
-                        </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
       </div>
+      
+      {/* Task Detail Modal */}
+      {isTaskDetailOpen && <TaskDetailModal />}
     </div>
   );
 }

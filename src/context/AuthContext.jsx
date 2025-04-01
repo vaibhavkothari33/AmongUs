@@ -15,7 +15,7 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     checkUser();
-    
+
     // Cleanup function that runs when component unmounts
     return () => {
       // Make sure to unsubscribe when the component unmounts
@@ -43,7 +43,7 @@ export function AuthProvider({ children }) {
       }
 
       const accountDetails = await account.get();
-      
+
       // Check if player exists by userId
       const playerDoc = await databases.listDocuments(
         DATABASE_ID,
@@ -53,27 +53,50 @@ export function AuthProvider({ children }) {
 
       let playerData;
       if (playerDoc.documents.length === 0) {
-        // Generate initial tasks for new player
-        const initialTasks = generatePlayerTasks();
-        
-        // Only create new player if none exists
+        // Create new player document
+        const timestamp = new Date().toISOString();
         playerData = await databases.createDocument(
           DATABASE_ID,
           COLLECTIONS.PLAYERS,
           ID.unique(),
           {
             userId: accountDetails.$id,
-            playerId: accountDetails.$id, // Add this line
+            playerId: accountDetails.$id,
             name: accountDetails.name,
             email: accountDetails.email,
             isAdmin: 'false',
             status: 'alive',
             role: 'crewmate',
-            tasks: initialTasks,
             score: 0,
-            createdAt: new Date().toISOString()
+            createdAt: timestamp,
+            updatedAt: timestamp
           }
         );
+
+        // Generate and create tasks for new player
+        const initialTasks = generatePlayerTasks();
+        await Promise.all(initialTasks.map(task => {
+          // Fix data types according to schema requirements
+          return databases.createDocument(
+            DATABASE_ID,
+            COLLECTIONS.TASKS,
+            ID.unique(),
+            {
+              playerId: playerData.$id,
+              title: task.title,
+              description: task.description,
+              location: task.location,
+              type: task.type,
+              approved: true,  // Boolean instead of string
+              visible: true,   // Boolean instead of string
+              order: parseInt(task.order || 0),  // Integer instead of string
+              externalLink: task.externalLink || '',
+              completed: false,  // Boolean instead of string
+              createdAt: timestamp,
+              updatedAt: timestamp
+            }
+          );
+        }));
 
         setUser({ ...accountDetails, playerData });
         setIsAdmin(false);
@@ -86,10 +109,10 @@ export function AuthProvider({ children }) {
         });
         setIsAdmin(playerData.isAdmin === 'true');
       }
-      
+
       // Setup real-time subscription after user is confirmed
       setupRealtimeSubscription(playerData.$id);
-      
+
       // Navigate based on role and status
       if (playerData.isAdmin === 'true') {
         navigate('/admin');
@@ -126,14 +149,14 @@ export function AuthProvider({ children }) {
         [`databases.${DATABASE_ID}.collections.${COLLECTIONS.PLAYERS}.documents.${playerDocId}`],
         (response) => {
           console.log('Realtime update received:', response);
-          
+
           if (response.events.includes(`databases.${DATABASE_ID}.collections.${COLLECTIONS.PLAYERS}.documents.${playerDocId}.update`)) {
             // Update local user data
             setUser(prevUser => ({
               ...prevUser,
               playerData: response.payload
             }));
-            
+
             setIsAdmin(response.payload.isAdmin === 'true');
 
             // Handle role/status changes
@@ -149,10 +172,10 @@ export function AuthProvider({ children }) {
           }
         }
       );
-      
+
       // Store the unsubscribe function in the ref for later cleanup
       subscriptionRef.current = unsubscribe;
-      
+
       console.log('Realtime subscription setup for player:', playerDocId);
     } catch (error) {
       console.error('Failed to set up realtime subscription:', error);
@@ -163,7 +186,7 @@ export function AuthProvider({ children }) {
     try {
       const redirectSuccess = window.location.origin + '/player';
       const redirectFailure = window.location.origin + '/login';
-      
+
       await account.createOAuth2Session(
         'google',
         redirectSuccess,
@@ -186,7 +209,7 @@ export function AuthProvider({ children }) {
           console.log('Error unsubscribing:', error);
         }
       }
-      
+
       await account.deleteSession('current');
       setUser(null);
       setIsAdmin(false);
@@ -198,15 +221,18 @@ export function AuthProvider({ children }) {
 
   const updateUserData = async (updatedData) => {
     if (!user || !user.playerData) return;
-    
+
     try {
       const updated = await databases.updateDocument(
         DATABASE_ID,
         COLLECTIONS.PLAYERS,
         user.playerData.$id,
-        updatedData
+        {
+          ...updatedData,
+          updatedAt: new Date().toISOString()
+        }
       );
-      
+
       // Let the realtime subscription handle the update
       return updated;
     } catch (error) {
@@ -216,11 +242,11 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      login, 
-      logout, 
-      loading, 
+    <AuthContext.Provider value={{
+      user,
+      login,
+      logout,
+      loading,
       isAdmin,
       updateUserData
     }}>
