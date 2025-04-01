@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { databases, client, DATABASE_ID, COLLECTIONS } from '../appwrite/config';
-import { Query } from 'appwrite';
+import { Query, ID } from 'appwrite';
 import { useNavigate } from 'react-router-dom';
-import { ID } from 'appwrite';
 
 // Task Categories
 const CODING_TASKS = [
@@ -117,7 +116,6 @@ function PlayerDashboard() {
     };
 
     // Generate tasks for a player
-    // Update the generatePlayerTasks function
     const generatePlayerTasks = (playerId) => {
         if (!playerId) {
             console.error('No playerId provided to generatePlayerTasks');
@@ -144,54 +142,6 @@ function PlayerDashboard() {
         }));
     };
 
-    // Update the fetchTasks function
-    const fetchTasks = async () => {
-        try {
-            setIsLoading(true);
-            if (!user?.playerData?.$id) {
-                console.error('No player ID available');
-                return;
-            }
-
-            const response = await databases.listDocuments(
-                DATABASE_ID,
-                COLLECTIONS.TASKS,
-                [
-                    Query.equal('playerId', user.playerData.$id),
-                    Query.orderAsc('order')
-                ]
-            );
-
-            if (response.documents.length === 0) {
-                const newTasks = generatePlayerTasks(user.playerData.$id);
-                if (newTasks.length === 0) {
-                    throw new Error('Failed to generate tasks');
-                }
-
-                const createdTasks = await Promise.all(
-                    newTasks.map(task =>
-                        databases.createDocument(
-                            DATABASE_ID,
-                            COLLECTIONS.TASKS,
-                            ID.unique(),
-                            task
-                        )
-                    )
-                );
-
-                processTaskResponse({ documents: createdTasks });
-            } else {
-                processTaskResponse(response);
-            }
-        } catch (error) {
-            console.error('Error fetching/creating tasks:', error);
-            setCurrentTask(null);
-            setTasks([]);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
     // Process task response function
     const processTaskResponse = (response) => {
         const sortedTasks = response.documents.sort((a, b) => a.order - b.order);
@@ -208,7 +158,15 @@ function PlayerDashboard() {
     const fetchTasks = async () => {
         try {
             setIsLoading(true);
-            if (!user?.playerData?.$id) return;
+            
+            // Safety check for user and playerData
+            if (!user?.playerData?.$id) {
+                console.error('No player ID available, user:', user);
+                setIsLoading(false);
+                return;
+            }
+
+            console.log("Fetching tasks for player ID:", user.playerData.$id);
 
             const response = await databases.listDocuments(
                 DATABASE_ID,
@@ -219,9 +177,18 @@ function PlayerDashboard() {
                 ]
             );
 
+            console.log("Task response:", response);
+
             // If no tasks exist, generate and create tasks for the player
             if (response.documents.length === 0) {
+                console.log("No tasks found, generating new tasks");
                 const newTasks = generatePlayerTasks(user.playerData.$id);
+                
+                console.log("Generated tasks:", newTasks);
+
+                if (newTasks.length === 0) {
+                    throw new Error('Failed to generate tasks');
+                }
 
                 // Create tasks in the database
                 const createdTasks = await Promise.all(
@@ -235,12 +202,13 @@ function PlayerDashboard() {
                     )
                 );
 
+                console.log("Created tasks:", createdTasks);
                 processTaskResponse({ documents: createdTasks });
             } else {
                 processTaskResponse(response);
             }
         } catch (error) {
-            console.error('Error fetching tasks:', error);
+            console.error('Error fetching/creating tasks:', error);
             setCurrentTask(null);
             setTasks([]);
         } finally {
@@ -256,7 +224,10 @@ function PlayerDashboard() {
                 DATABASE_ID,
                 COLLECTIONS.TASKS,
                 taskId,
-                { completed: 'true' }
+                { 
+                    completed: 'true',
+                    playerId: user.playerData.$id // Ensure playerId is included
+                }
             );
 
             // Find the next task in order and make it visible
@@ -268,7 +239,10 @@ function PlayerDashboard() {
                     DATABASE_ID,
                     COLLECTIONS.TASKS,
                     nextTask.$id,
-                    { visible: 'true' }
+                    { 
+                        visible: 'true',
+                        playerId: user.playerData.$id // Ensure playerId is included
+                    }
                 );
             }
 
@@ -283,18 +257,30 @@ function PlayerDashboard() {
     // Fetch tasks when user changes
     useEffect(() => {
         if (user?.playerData?.$id) {
+            console.log("User changed, fetching tasks for:", user.playerData.$id);
             fetchTasks();
+        } else {
+            console.log("No user or playerData available:", user);
         }
     }, [user]);
 
     // Subscribe to player status updates
     useEffect(() => {
+        if (!user?.playerData?.$id) {
+            console.log("Cannot subscribe to player updates - no playerData");
+            return;
+        }
+
+        console.log("Setting up player status subscription for:", user.playerData.$id);
+        
         const unsubscribe = client.subscribe([
             `databases.${DATABASE_ID}.collections.${COLLECTIONS.PLAYERS}.documents`,
         ], (response) => {
             if (response.events.includes(`databases.${DATABASE_ID}.collections.${COLLECTIONS.PLAYERS}.documents.update`)) {
                 if (user?.playerData?.$id === response.payload.$id) {
+                    console.log("Received player update:", response.payload);
                     setGameStatus(response.payload.status);
+                    
                     if (response.payload.status === 'dead') {
                         navigate('/spectator');
                     } else if (response.payload.role === 'imposter') {
@@ -305,17 +291,21 @@ function PlayerDashboard() {
         });
     
         return () => {
+            console.log("Unsubscribing from player updates");
             unsubscribe();
         };
     }, [user, navigate]);
 
     // Subscribe to emergency meeting events
     useEffect(() => {
+        console.log("Setting up emergency meeting subscription");
+        
         const unsubscribe = client.subscribe([
             `databases.${DATABASE_ID}.collections.${COLLECTIONS.EVENTS}.documents`,
         ], (response) => {
             if (response.events.includes(`databases.${DATABASE_ID}.collections.${COLLECTIONS.EVENTS}.documents.create`)) {
                 if (response.payload.type === 'emergency_meeting') {
+                    console.log("Emergency meeting event received:", response.payload);
                     const callerName = response.payload.callerName || 'Someone';
                     alert(`⚠️ EMERGENCY MEETING CALLED!\n${callerName} has called an emergency meeting!`);
                 }
@@ -323,21 +313,34 @@ function PlayerDashboard() {
         });
     
         return () => {
+            console.log("Unsubscribing from emergency meeting events");
             unsubscribe();
         };
     }, []);
 
     // Subscribe to task updates
     useEffect(() => {
+        if (!user?.playerData?.$id) {
+            console.log("Cannot subscribe to task updates - no playerData");
+            return;
+        }
+
+        console.log("Setting up task subscription for player:", user.playerData.$id);
+        
         const taskSubscription = client.subscribe([
             `databases.${DATABASE_ID}.collections.${COLLECTIONS.TASKS}.documents`,
         ], (response) => {
             if (response.events.includes(`databases.${DATABASE_ID}.collections.${COLLECTIONS.TASKS}.documents.update`)) {
-                fetchTasks();
+                console.log("Task update received:", response.payload);
+                // Only fetch if this task belongs to the current player
+                if (response.payload.playerId === user.playerData.$id) {
+                    fetchTasks();
+                }
             }
         });
     
         return () => {
+            console.log("Unsubscribing from task updates");
             taskSubscription();
         };
     }, [user]);
@@ -356,7 +359,7 @@ function PlayerDashboard() {
                 <div className="flex justify-between items-center mb-8">
                     <div>
                         <h1 className="text-2xl font-bold">Crewmate</h1>
-                        <p className="text-gray-400">Welcome, {user?.playerData?.name}</p>
+                        <p className="text-gray-400">Welcome, {user?.playerData?.name || 'Player'}</p>
                     </div>
                     <div className="flex gap-2">
                         {isAdmin && (
