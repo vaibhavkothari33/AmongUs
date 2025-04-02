@@ -54,6 +54,7 @@ export function AuthProvider({ children }) {
       let playerData;
       if (playerDoc.documents.length === 0) {
         // Create new player document
+        // Create new player document
         const timestamp = new Date().toISOString();
         playerData = await databases.createDocument(
           DATABASE_ID,
@@ -69,7 +70,9 @@ export function AuthProvider({ children }) {
             role: 'crewmate',
             score: 0,
             createdAt: timestamp,
-            updatedAt: timestamp
+            updatedAt: timestamp,
+            killedAt: null,  // Add this required field with null for new players
+            killedBy: null   // Add this required field with null for new players
           }
         );
 

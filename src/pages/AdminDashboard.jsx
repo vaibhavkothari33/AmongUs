@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { databases, DATABASE_ID, COLLECTIONS } from '../appwrite/config';
+import { databases, DATABASE_ID, COLLECTIONS, client } from '../appwrite/config';
 import { ID, Query } from 'appwrite';
 // import { generatePlayerTasks } from '../utils/taskGenerator';
 
 function AdminDashboard() {
-  const { user, logout, isAdmin } = useAuth();
+  const { user, logout } = useAuth();
   const [players, setPlayers] = useState([]);
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [gameState, setGameState] = useState('waiting');
@@ -111,8 +111,29 @@ function AdminDashboard() {
 
   useEffect(() => {
     fetchPlayers();
+    
+    // Set up a real-time listener for player changes
+    const unsubscribe = client.subscribe(`databases.${DATABASE_ID}.collections.${COLLECTIONS.PLAYERS}.documents`, (response) => {
+      if (response.events.includes(`databases.${DATABASE_ID}.collections.${COLLECTIONS.PLAYERS}.documents.*.update`)) {
+        console.log("Player document updated, refreshing data");
+        fetchPlayers();
+      }
+    });
+    
+    // Optional: Listen specifically for kill events
+    const killEventsUnsubscribe = client.subscribe(`databases.${DATABASE_ID}.collections.${COLLECTIONS.KILL_EVENTS}.documents`, (response) => {
+      if (response.events.includes(`databases.${DATABASE_ID}.collections.${COLLECTIONS.KILL_EVENTS}.documents.*.create`)) {
+        console.log("Kill event detected, refreshing data");
+        fetchPlayers();
+      }
+    });
+  
+    // Clean up subscriptions when component unmounts
+    return () => {
+      unsubscribe();
+      killEventsUnsubscribe();
+    };
   }, []);
-
   // When selectedPlayer changes, fetch their tasks
   useEffect(() => {
     if (selectedPlayer) {
@@ -199,7 +220,11 @@ function AdminDashboard() {
         DATABASE_ID,
         COLLECTIONS.PLAYERS,
         playerId,
-        { status: 'dead' }
+        { 
+          status: 'dead',
+          killedAt: new Date().toISOString(),
+          killedBy: user.$id  // Add the admin's ID as the killer
+        }
       );
       await fetchPlayers();
     } catch (error) {
@@ -207,7 +232,6 @@ function AdminDashboard() {
       setError('Failed to kill player');
     }
   };
-
   const handleToggleRole = async (playerId, currentRole) => {
     try {
       const newRole = currentRole === 'imposter' ? 'crewmate' : 'imposter';

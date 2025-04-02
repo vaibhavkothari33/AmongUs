@@ -51,7 +51,6 @@ function ImposterDashboard() {
       console.error('Error fetching players:', error);
     }
   };
-
   const handleKillPlayer = async (playerId) => {
     try {
       // First get the current player data
@@ -60,8 +59,9 @@ function ImposterDashboard() {
         COLLECTIONS.PLAYERS,
         playerId
       );
-
+  
       // Update the player while preserving their role
+      // Only using attributes that exist in your schema
       await databases.updateDocument(
         DATABASE_ID,
         COLLECTIONS.PLAYERS,
@@ -69,13 +69,52 @@ function ImposterDashboard() {
         { 
           status: 'dead',
           role: player.role || 'crewmate' // Preserve existing role
+          // Removed the killedAt and killedBy attributes that caused the error
         }
       );
+  
+      // Create a kill event document to track kills instead of adding fields to player
+      await databases.createDocument(
+        DATABASE_ID,
+        COLLECTIONS.KILL_EVENTS, // Make sure this collection exists
+        ID.unique(),
+        {
+          killedPlayerId: playerId,
+          killerPlayerId: user.$id,
+          timestamp: new Date().toISOString()
+        }
+      );
+      
       await fetchPlayers();
     } catch (error) {
       console.error('Error killing player:', error);
     }
   };
+  
+  // const handleKillPlayer = async (playerId) => {
+  //   try {
+  //     // First get the current player data
+  //     const player = await databases.getDocument(
+  //       DATABASE_ID,
+  //       COLLECTIONS.PLAYERS,
+  //       playerId
+  //     );
+
+  //     // Update the player while preserving their role
+  //     await databases.updateDocument(
+  //       DATABASE_ID,
+  //       COLLECTIONS.PLAYERS,
+  //       playerId,
+  //       { 
+  //         status: 'dead',
+  //         role: player.role || 'crewmate' // Preserve existing role
+  //       }
+  //     );
+  //     await fetchPlayers();
+  //   } catch (error) {
+  //     console.error('Error killing player:', error);
+  //   }
+  // };
 
   const handleEmergencyMeeting = async () => {
     if (emergencyMeetingCooldown) return;
