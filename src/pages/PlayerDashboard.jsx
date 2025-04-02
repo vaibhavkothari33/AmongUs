@@ -8,53 +8,222 @@ import { useNavigate } from 'react-router-dom';
 const CODING_TASKS = [
     {
         title: 'Fix the Authentication Bug',
-        description: 'Debug and fix the login authentication system. The bug is causing users to be logged out randomly.',
-        location: 'Security Room',
+        description: 'Debug and fix the login authentication system for the Bennett University portal. The bug is causing students to be logged out randomly from the attendance system.',
+        location: 'IT Support Room',
         type: 'coding',
         externalLink: 'https://leetcode.com/problems/design-authentication-manager/'
     },
     {
         title: 'Optimize Database Queries',
-        description: 'Improve the performance of database queries in the reactor monitoring system.',
-        location: 'Server Room',
+        description: 'Improve the performance of database queries in the BU Placement Portal to speed up student profile searches.',
+        location: 'Server Room (Admin Block)',
         type: 'coding',
         externalLink: 'https://leetcode.com/problems/optimize-table-queries/'
+    },
+    {
+        title: 'Fix Course Registration Errors',
+        description: 'Identify and fix errors in the online course registration system where students are unable to enroll in specific courses.',
+        location: 'Student Affairs Office',
+        type: 'coding',
+        externalLink: 'https://leetcode.com/problems/course-schedule/'
+    },
+    {
+        title: 'Enhance Library Search System',
+        description: 'Improve the search functionality in the university library system to make book searches faster and more efficient.',
+        location: 'Library IT Room',
+        type: 'coding',
+        externalLink: 'https://leetcode.com/problems/search-suggestions-system/'
+    },
+    {
+        title: 'Develop Attendance Analytics Dashboard',
+        description: 'Build a real-time dashboard that provides insights on student attendance trends.',
+        location: 'Admin Block - IT Services',
+        type: 'coding',
+        externalLink: 'https://d3js.org/'
+    },
+    {
+        title: 'Bug Fix in Exam Scheduler',
+        description: 'Resolve issues in the university’s exam scheduling system where exam clashes occur frequently.',
+        location: 'Examination Cell',
+        type: 'coding',
+        externalLink: 'https://leetcode.com/problems/meeting-rooms-ii/'
+    },
+    {
+        title: 'Implement Dark Mode for Student Portal',
+        description: 'Add a dark mode toggle feature for the student portal UI.',
+        location: 'IT Support Room',
+        type: 'coding',
+        externalLink: 'https://react.dev/'
+    },
+    {
+        title: 'Automate Club Membership Registration',
+        description: 'Create an automated system for club registrations, reducing manual approvals.',
+        location: 'Student Club Office',
+        type: 'coding',
+        externalLink: 'https://github.com/'
+    },
+    {
+        title: 'Improve Placement Dashboard Performance',
+        description: 'Optimize API calls in the Placement Portal to enhance speed and efficiency.',
+        location: 'Career Services Department',
+        type: 'coding',
+        externalLink: 'https://nextjs.org/docs/api-routes/introduction'
+    },
+    {
+        title: 'Integrate Google Authentication',
+        description: 'Add Google sign-in functionality to the university’s online platforms.',
+        location: 'IT Support Room',
+        type: 'coding',
+        externalLink: 'https://firebase.google.com/docs/auth/web/google-signin'
     }
 ];
 
 const PHYSICAL_TASKS = [
     {
-        title: 'Calibrate Sensors',
-        description: 'Visit the sensor room and manually calibrate all environmental sensors.',
-        location: 'Sensor Room',
+        title: 'Calibrate Lab Equipment',
+        description: 'Visit the engineering lab and manually calibrate all lab instruments for upcoming practical exams.',
+        location: 'Innovation Lab',
         type: 'physical',
         externalLink: 'https://among-us-vk.vercel.app/tasks/calibrate'
     },
     {
-        title: 'Check Electrical Wiring',
-        description: 'Inspect and report the status of electrical connections in the maintenance panel.',
-        location: 'Electrical',
+        title: 'Check Wi-Fi Connectivity',
+        description: 'Inspect and report Wi-Fi coverage across campus, focusing on weak zones in the library and hostel areas.',
+        location: 'IT Services',
         type: 'physical',
         externalLink: 'https://among-us-vk.vercel.app/tasks/electrical'
+    },
+    {
+        title: 'Rearrange Seating in Lecture Halls',
+        description: 'Help rearrange seats in lecture halls to accommodate a new seating plan for exams.',
+        location: 'Lecture Hall 202',
+        type: 'physical',
+        externalLink: 'https://bennett.edu.in'
+    },
+    {
+        title: 'Update Notice Boards',
+        description: 'Replace old notices with new announcements in all major university buildings.',
+        location: 'Admin Block',
+        type: 'physical',
+        externalLink: 'https://bennett.edu.in'
+    },
+    {
+        title: 'Test Smart Boards in Classrooms',
+        description: 'Ensure smart boards in classrooms are working properly before lectures start.',
+        location: 'Academic Block',
+        type: 'physical',
+        externalLink: 'https://bennett.edu.in'
+    },
+    {
+        title: 'Fix Projector Setup in Seminar Hall',
+        description: 'Check and fix issues with the projector in the seminar hall before an upcoming event.',
+        location: 'Seminar Hall',
+        type: 'physical',
+        externalLink: 'https://bennett.edu.in'
+    },
+    {
+        title: 'Inventory Check in Labs',
+        description: 'Perform an inventory check of lab equipment and note down missing items.',
+        location: 'Physics and Chemistry Labs',
+        type: 'physical',
+        externalLink: 'https://bennett.edu.in'
+    },
+    {
+        title: 'Report Broken Chairs and Tables',
+        description: 'Identify broken chairs and tables in the common areas and report them for repair.',
+        location: 'Student Lounge',
+        type: 'physical',
+        externalLink: 'https://bennett.edu.in'
+    },
+    {
+        title: 'Monitor Food Quality in Canteen',
+        description: 'Survey and report on the quality of food served in the cafeteria.',
+        location: 'University Cafeteria',
+        type: 'physical',
+        externalLink: 'https://bennett.edu.in'
+    },
+    {
+        title: 'Ensure Hostel Safety Compliance',
+        description: 'Inspect hostel premises for any safety hazards and ensure emergency exits are accessible.',
+        location: 'Hostel Blocks',
+        type: 'physical',
+        externalLink: 'https://bennett.edu.in'
     }
 ];
 
 const EXTERNAL_TASKS = [
     {
-        title: 'Complete Security Training',
-        description: 'Take the mandatory security awareness training course.',
-        location: 'Admin Room',
+        title: 'Complete Cybersecurity Training',
+        description: 'Take the mandatory cybersecurity awareness training course for students accessing the university’s network.',
+        location: 'Learning Management System (LMS)',
         type: 'external',
         externalLink: 'https://www.hackerrank.com/skills-verification/security'
     },
     {
-        title: 'System Architecture Review',
-        description: 'Review and document the current system architecture.',
-        location: 'Navigation',
+        title: 'Review University System Architecture',
+        description: 'Analyze and document the architecture of the Bennett University internal systems, focusing on the student portal and exam registration process.',
+        location: 'Admin Block (IT Department)',
         type: 'external',
         externalLink: 'https://www.coursera.org/learn/system-architecture'
+    },
+    {
+        title: 'Participate in an Open Source Contribution Event',
+        description: 'Contribute to an open-source project related to education or university management.',
+        location: 'Online',
+        type: 'external',
+        externalLink: 'https://github.com/explore'
+    },
+    {
+        title: 'Earn AWS Certification',
+        description: 'Complete AWS cloud training and obtain certification for better job prospects.',
+        location: 'Online',
+        type: 'external',
+        externalLink: 'https://aws.amazon.com/certification/'
+    },
+    {
+        title: 'Attend a Web Development Webinar',
+        description: 'Join an online webinar on the latest web development trends and best practices.',
+        location: 'Online',
+        type: 'external',
+        externalLink: 'https://frontendmasters.com/'
+    },
+    {
+        title: 'Complete a Coursera Data Science Course',
+        description: 'Take an introductory course on data science and apply your learning in a mini-project.',
+        location: 'Online',
+        type: 'external',
+        externalLink: 'https://www.coursera.org/specializations/data-science-python'
+    },
+    {
+        title: 'Write a Technical Blog on Medium',
+        description: 'Publish a technical blog post on a trending topic in software development.',
+        location: 'Online',
+        type: 'external',
+        externalLink: 'https://medium.com/'
+    },
+    {
+        title: 'Watch a TED Talk on Innovation',
+        description: 'Watch and summarize a TED Talk on innovation and technology.',
+        location: 'Online',
+        type: 'external',
+        externalLink: 'https://www.ted.com/talks'
+    },
+    {
+        title: 'Complete a UI/UX Design Challenge',
+        description: 'Participate in an online UI/UX design challenge and submit your design.',
+        location: 'Online',
+        type: 'external',
+        externalLink: 'https://www.uxtools.co/challenges'
+    },
+    {
+        title: 'Enroll in a Competitive Programming Course',
+        description: 'Join a competitive programming course and solve at least 10 problems.',
+        location: 'Online',
+        type: 'external',
+        externalLink: 'https://www.codechef.com/certification/data-structures-and-algorithms/prepare'
     }
 ];
+
 
 // Main component function
 function PlayerDashboard() {
@@ -70,7 +239,7 @@ function PlayerDashboard() {
     // Emergency Meeting States
     const [emergencyMeetingCooldown, setEmergencyMeetingCooldown] = useState(0);
     const [emergencyMeetingInProgress, setEmergencyMeetingInProgress] = useState(false);
-    const EmergencyMeetingCooldown = 30; // 60 seconds cooldown
+    const EmergencyMeetingCooldown = 30; // 30 seconds cooldown
 
     // Emergency Meeting Countdown Timer
     useEffect(() => {
@@ -88,7 +257,6 @@ function PlayerDashboard() {
         if (emergencyMeetingCooldown > 0 || gameStatus !== 'alive') return;
 
         try {
-            // Create an emergency meeting document
             await databases.createDocument(
                 DATABASE_ID,
                 COLLECTIONS.EVENTS,
@@ -96,7 +264,7 @@ function PlayerDashboard() {
                 {
                     type: 'emergency_meeting',
                     calledBy: user.playerData.$id,
-                    callerName: user.playerData.name, // Added caller's name for the alert
+                    callerName: user.playerData.name,
                     timestamp: new Date().toISOString(),
                     status: 'active'
                 }
@@ -104,16 +272,73 @@ function PlayerDashboard() {
 
             setEmergencyMeetingCooldown(EmergencyMeetingCooldown);
             setEmergencyMeetingInProgress(true);
-
-            setTimeout(() => {
-                setEmergencyMeetingInProgress(false);
-            }, 30000);
-
         } catch (error) {
             console.error('Emergency Meeting Error:', error);
             alert('Failed to call emergency meeting. Please try again.');
         }
     };
+
+    // Single subscription for emergency meeting events
+    useEffect(() => {
+        console.log("Setting up emergency meeting subscription");
+        
+        const unsubscribe = client.subscribe(
+            [`databases.${DATABASE_ID}.collections.${COLLECTIONS.EVENTS}.documents`],
+            (response) => {
+                const validEvents = [
+                    `databases.${DATABASE_ID}.collections.${COLLECTIONS.EVENTS}.documents.create`
+                ];
+
+                if (validEvents.some(event => response.events.includes(event))) {
+                    const payload = response.payload;
+                    
+                    if (payload.type === 'emergency_meeting' && payload.status === 'active') {
+                        // Play meeting sound
+                        const audio = new Audio('/meeting.mp3');
+                        audio.volume = 0.7; // Set volume to 70%
+                        audio.play().catch(err => console.log('Audio play failed:', err));
+
+                        // Create full-screen modal
+                        const overlay = document.createElement('div');
+                        overlay.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50';
+                        overlay.style.backdropFilter = 'blur(5px)';
+                        
+                        const modal = document.createElement('div');
+                        modal.className = 'bg-red-600 p-8 rounded-lg text-center max-w-md mx-4 animate-bounce';
+                        modal.innerHTML = `
+                            <h2 class="text-4xl font-bold mb-4">⚠️ EMERGENCY MEETING!</h2>
+                            <p class="text-2xl mb-6">${payload.callerName} has called an emergency meeting!</p>
+                            <p class="text-xl">All players must report immediately!</p>
+                            <div class="mt-6 text-3xl font-bold countdown">10</div>
+                        `;
+                        
+                        overlay.appendChild(modal);
+                        document.body.appendChild(overlay);
+
+                        // Add countdown and navigate
+                        let countdown = 10;
+                        const countdownElement = modal.querySelector('.countdown');
+                        const countdownInterval = setInterval(() => {
+                            countdown--;
+                            if (countdownElement) {
+                                countdownElement.textContent = countdown;
+                            }
+                            if (countdown <= 0) {
+                                clearInterval(countdownInterval);
+                                overlay.remove();
+                                navigate('/meeting');
+                            }
+                        }, 1000);
+                    }
+                }
+            }
+        );
+
+        return () => {
+            console.log("Unsubscribing from emergency meeting events");
+            unsubscribe();
+        };
+    }, [navigate]);
 
     // Generate tasks for a player
     const generatePlayerTasks = (playerId) => {
@@ -141,6 +366,7 @@ function PlayerDashboard() {
             order: index + 1
         }));
     };
+
     // Process task response function
     const processTaskResponse = (response) => {
         const sortedTasks = response.documents.sort((a, b) => a.order - b.order);
@@ -349,28 +575,6 @@ function PlayerDashboard() {
         };
     }, [user, navigate]);
 
-    // Subscribe to emergency meeting events
-    useEffect(() => {
-        console.log("Setting up emergency meeting subscription");
-        
-        const unsubscribe = client.subscribe([
-            `databases.${DATABASE_ID}.collections.${COLLECTIONS.EVENTS}.documents`,
-        ], (response) => {
-            if (response.events.includes(`databases.${DATABASE_ID}.collections.${COLLECTIONS.EVENTS}.documents.create`)) {
-                if (response.payload.type === 'emergency_meeting') {
-                    console.log("Emergency meeting event received:", response.payload);
-                    const callerName = response.payload.callerName || 'Someone';
-                    alert(`⚠️ EMERGENCY MEETING CALLED!\n${callerName} has called an emergency meeting!`);
-                }
-            }
-        });
-    
-        return () => {
-            console.log("Unsubscribing from emergency meeting events");
-            unsubscribe();
-        };
-    }, []);
-
     // Subscribe to task updates
     useEffect(() => {
         if (!user?.playerData?.$id) {
@@ -498,7 +702,7 @@ function PlayerDashboard() {
                             <p className="text-gray-400 text-center py-4">
                                 {tasks.length === 0
                                     ? "No tasks available yet."
-                                    : tasks.every(task => task.completed === 'true' && task.approved === 'true')
+                                    : tasks.every(task => task.completed === true && task.approved === true)
                                         ? "All tasks completed!"
                                         : "Waiting for admin approval..."}
                             </p>

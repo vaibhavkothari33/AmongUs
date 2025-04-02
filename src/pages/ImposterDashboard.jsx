@@ -90,31 +90,6 @@ function ImposterDashboard() {
       console.error('Error killing player:', error);
     }
   };
-  
-  // const handleKillPlayer = async (playerId) => {
-  //   try {
-  //     // First get the current player data
-  //     const player = await databases.getDocument(
-  //       DATABASE_ID,
-  //       COLLECTIONS.PLAYERS,
-  //       playerId
-  //     );
-
-  //     // Update the player while preserving their role
-  //     await databases.updateDocument(
-  //       DATABASE_ID,
-  //       COLLECTIONS.PLAYERS,
-  //       playerId,
-  //       { 
-  //         status: 'dead',
-  //         role: player.role || 'crewmate' // Preserve existing role
-  //       }
-  //     );
-  //     await fetchPlayers();
-  //   } catch (error) {
-  //     console.error('Error killing player:', error);
-  //   }
-  // };
 
   const handleEmergencyMeeting = async () => {
     if (emergencyMeetingCooldown) return;
