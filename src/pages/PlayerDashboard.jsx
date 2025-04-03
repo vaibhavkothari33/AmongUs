@@ -699,13 +699,13 @@ function PlayerDashboard() {
                                 </div>
                             </div>
                         ) : (
-                            <p className="text-gray-400 text-center py-4">
-                                {tasks.length === 0
-                                    ? "No tasks available yet."
-                                    : tasks.every(task => task.completed === true && task.approved === true)
-                                        ? "All tasks completed!"
-                                        : "Waiting for admin approval..."}
-                            </p>
+                            // <p className="text-gray-400 text-center py-4">
+                            //     {tasks.length === 0
+                            //         ? "No tasks available yet."
+                            //         : tasks.every(task => task.completed === true && task.approved === true)
+                            //             ? "All tasks completed!"
+                            //             : "Waiting for admin approval..."}
+                            // </p>
                         )}
                         
                         {/* Completed Tasks Section */}
