@@ -125,7 +125,7 @@ function ImposterDashboard() {
                 <img 
                     src="/fullarvr.jpeg" 
                     alt="Game Logo" 
-                    className="h-20 w-36" 
+                    className="h-16 w-auto" 
                 />
             </div>
       <div className="max-w-4xl mx-auto">
