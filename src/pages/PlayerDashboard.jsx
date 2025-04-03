@@ -723,11 +723,11 @@ function PlayerDashboard() {
                                         <span className="px-3 py-1 rounded bg-green-500">
                                             Completed
                                         </span>
-                                        <span className={`px-3 py-1 rounded ${
+{/*                                         <span className={`px-3 py-1 rounded ${
                                             task.approved === true ? 'bg-green-500' : 'bg-yellow-500'
                                         }`}>
                                             {task.approved === true ? 'Approved' : 'Waiting Approval'}
-                                        </span>
+                                        </span> */}
                                     </div>
                                 </div>
                             </div>
