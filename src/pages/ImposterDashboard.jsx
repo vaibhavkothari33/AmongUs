@@ -121,6 +121,13 @@ function ImposterDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white p-4">
+        <div className="sticky top-0 bg-gray-900 z-50 flex justify-center items-center p-2 shadow-md">
+                <img 
+                    src="/fullarvr.jpeg" 
+                    alt="Game Logo" 
+                    className="h-20 w-36" 
+                />
+            </div>
       <div className="max-w-4xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <div>
