@@ -698,7 +698,8 @@ function PlayerDashboard() {
                                     </div>
                                 </div>
                             </div>
-                        ) : (
+                        ) 
+                            // : (
                             // <p className="text-gray-400 text-center py-4">
                             //     {tasks.length === 0
                             //         ? "No tasks available yet."
@@ -706,7 +707,8 @@ function PlayerDashboard() {
                             //             ? "All tasks completed!"
                             //             : "Waiting for admin approval..."}
                             // </p>
-                        )}
+                        // )
+                        }
                         
                         {/* Completed Tasks Section */}
                         {tasks.filter(task => task.completed === true).map((task) => (
