@@ -718,6 +718,7 @@ function PlayerDashboard() {
             </div>
         ))}
     </div>
+    </div>
 </div>
     );
 }
