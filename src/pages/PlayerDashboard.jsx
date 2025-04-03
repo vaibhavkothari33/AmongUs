@@ -613,6 +613,7 @@ function PlayerDashboard() {
     return (
         <div className="min-h-screen bg-gray-900 text-white p-4">
             <div className="max-w-4xl mx-auto">
+                {/* Header Section */}
                 <div className="flex justify-between items-center mb-8">
                     <div>
                         <h1 className="text-2xl font-bold">Crewmate</h1>
@@ -636,6 +637,7 @@ function PlayerDashboard() {
                     </div>
                 </div>
 
+                {/* Status Section */}
                 <div className="bg-gray-800 rounded-lg p-4 mb-6">
                     <div className="flex justify-between items-center">
                         <div>
@@ -661,65 +663,71 @@ function PlayerDashboard() {
                         )}
                     </div>
                 </div>
-<div className="bg-gray-800 rounded-lg p-4">
-    <h2 className="text-xl font-semibold mb-4">Your Tasks</h2>
-    <div className="grid gap-4">
-        {currentTask && (
-            <div className="bg-gray-700 rounded-lg p-4">
-                <div className="flex justify-between items-start">
-                    <div>
-                        <h3 className="text-lg font-semibold">{currentTask.title}</h3>
-                        <p className="text-gray-400 mt-1">{currentTask.description}</p>
-                        <p className="text-sm text-gray-500 mt-2">
-                            Location: {currentTask.location} | Type: {currentTask.type}
-                        </p>
-                        {currentTask.externalLink && (
-                            <a
-                                href={currentTask.externalLink}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-blue-400 hover:text-blue-300 text-sm mt-2 inline-block"
-                            >
-                                Start Task
-                            </a>
-                        )}
-                    </div>
-                    <div className="flex flex-col gap-2 items-end">
-                        <span className="px-3 py-1 rounded bg-yellow-500">
-                            Current Task
-                        </span>
-                        <button
-                            onClick={() => handleCompleteTask(currentTask.$id)}
-                            className="bg-blue-600 px-3 py-1 rounded hover:bg-blue-700 text-sm"
-                        >
-                            Mark Complete
-                        </button>
-                    </div>
-                </div>
-            </div>
-        )}
 
-        {tasks.filter(task => task.completed === true).map((task) => (
-            <div key={task.$id} className="bg-gray-700/50 rounded-lg p-4">
-                <div className="flex justify-between items-start">
-                    <div>
-                        <h3 className="text-lg font-semibold">{task.title}</h3>
-                        <p className="text-gray-400 mt-1">{task.description}</p>
-                        <p className="text-sm text-gray-500 mt-2">
-                            Location: {task.location} | Type: {task.type}
-                        </p>
-                    </div>
-                    <div className="flex flex-col gap-2 items-end">
-                        <span className="px-3 py-1 rounded bg-green-500">
-                            Completed
-                        </span>
+                {/* Tasks Section */}
+                <div className="bg-gray-800 rounded-lg p-4">
+                    <h2 className="text-xl font-semibold mb-4">Your Tasks</h2>
+                    <div className="grid gap-4">
+                        {/* Current Task */}
+                        {currentTask && (
+                            <div className="bg-gray-700 rounded-lg p-4">
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <h3 className="text-lg font-semibold">{currentTask.title}</h3>
+                                        <p className="text-gray-400 mt-1">{currentTask.description}</p>
+                                        <p className="text-sm text-gray-500 mt-2">
+                                            Location: {currentTask.location} | Type: {currentTask.type}
+                                        </p>
+                                        {currentTask.externalLink && (
+                                            <a
+                                                href={currentTask.externalLink}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-blue-400 hover:text-blue-300 text-sm mt-2 inline-block"
+                                            >
+                                                Start Task
+                                            </a>
+                                        )}
+                                    </div>
+                                    <div className="flex flex-col gap-2 items-end">
+                                        <span className="px-3 py-1 rounded bg-yellow-500">
+                                            Current Task
+                                        </span>
+                                        <button
+                                            onClick={() => handleCompleteTask(currentTask.$id)}
+                                            className="bg-blue-600 px-3 py-1 rounded hover:bg-blue-700 text-sm"
+                                        >
+                                            Mark Complete
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Completed Tasks */}
+                        {tasks?.filter(task => task.completed).map((task) => (
+                            <div key={task.$id} className="bg-gray-700/50 rounded-lg p-4">
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <h3 className="text-lg font-semibold">{task.title}</h3>
+                                        <p className="text-gray-400 mt-1">{task.description}</p>
+                                        <p className="text-sm text-gray-500 mt-2">
+                                            Location: {task.location} | Type: {task.type}
+                                        </p>
+                                    </div>
+                                    <div className="flex flex-col gap-2 items-end">
+                                        <span className="px-3 py-1 rounded bg-green-500">
+                                            Completed
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 </div>
             </div>
         </div>
-        ))}
-    </div>
-</div>
     );
 }
+
 export default PlayerDashboard;
