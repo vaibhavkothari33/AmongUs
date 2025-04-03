@@ -708,7 +708,7 @@ function PlayerDashboard() {
                             //             : "Waiting for admin approval..."}
                             // </p>
                         // )
-                        }
+                        // }
                         
                         {/* Completed Tasks Section */}
                         {tasks.filter(task => task.completed === true).map((task) => (
