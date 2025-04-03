@@ -716,11 +716,10 @@ function PlayerDashboard() {
                     </div>
                 </div>
             </div>
+        </div>
         ))}
-    </div>
     </div>
 </div>
     );
 }
-
 export default PlayerDashboard;
