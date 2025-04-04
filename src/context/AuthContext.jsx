@@ -106,8 +106,8 @@ export function AuthProvider({ children }) {
               order: parseInt(task.order || 0),
               externalLink: task.externalLink || '',
               completed: false,
-              createdAt: timestamp,
-              updatedAt: timestamp
+              // createdAt: timestamp,
+              // updatedAt: timestamp
             }
           );
         }));

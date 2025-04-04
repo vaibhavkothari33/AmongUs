@@ -75,11 +75,11 @@ function Login() {
         />
         <h1 className="text-4xl font-bold text-white mb-6">Among Us IRL</h1>
         
-        {loginError && (
+        {/* {loginError && (
           <div className="bg-red-600 text-white p-3 rounded mb-4">
             Login error: {loginError}
           </div>
-        )}
+        )} */}
         
         <p className="text-gray-300 mb-6">Login with your Google account to join the game.</p>
         
