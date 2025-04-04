@@ -340,8 +340,8 @@ export function AuthProvider({ children }) {
             status: 'alive',
             role: 'crewmate',
             score: 0,
-            createdAt: timestamp,
-            updatedAt: timestamp,
+            // createdAt: timestamp,
+            // updatedAt: timestamp,
             killedAt: null,
             killedBy: null
           }
