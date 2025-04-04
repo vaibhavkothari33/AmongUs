@@ -760,12 +760,7 @@ const processTaskResponse = (response) => {
                     </div>
                 </div>
             </div>
-            <div className="text-center py-4 text-gray-500 text-sm">
-                Made with ❤️ by &nbsp;
-                <a href="https://vaibhavkothari.vercel.app" target="_blank" className="font-semibold text-blue-500 hover:underline">
-                    Vaibhav Kothari
-                </a>
-            </div>
+          
         </div>
     );
 }
