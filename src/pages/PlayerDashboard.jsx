@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 const CODING_TASKS = [
     {
         title: 'Tech Quest-1',
-       description: 'Tech Quest-1 is a coding challenge where participants must debug and fix the login authentication system for the Bennett University portal. The issue causes students to be logged out randomly from the attendance system. Test your problem-solving skills by identifying and resolving the bug efficiently.',
+        description: 'Tech Quest-1 is a coding challenge where participants must debug and fix the login authentication system for the Bennett University portal. The issue causes students to be logged out randomly from the attendance system. Test your problem-solving skills by identifying and resolving the bug efficiently.',
         location: 'Admin Room',
         type: 'coding',
         externalLink: 'https://leetcode.com/problems/design-authentication-manager/'
@@ -22,37 +22,37 @@ const CODING_TASKS = [
     },
     {
         title: 'Tech Quest-3',
-       description: 'Tech Quest-3 is a coding challenge where participants must debug and fix the login authentication system for the Bennett University portal. The issue causes students to be logged out randomly from the attendance system. Test your problem-solving skills by identifying and resolving the bug efficiently.',
+        description: 'Tech Quest-3 is a coding challenge where participants must debug and fix the login authentication system for the Bennett University portal. The issue causes students to be logged out randomly from the attendance system. Test your problem-solving skills by identifying and resolving the bug efficiently.',
         location: 'Storage Room',
         type: 'coding',
         externalLink: 'https://leetcode.com/problems/design-authentication-manager/'
     },
     {
         title: 'Tech Quest-4',
-       description: 'Tech Quest-4 is a coding challenge where participants must debug and fix the login authentication system for the Bennett University portal. The issue causes students to be logged out randomly from the attendance system. Test your problem-solving skills by identifying and resolving the bug efficiently.',
+        description: 'Tech Quest-4 is a coding challenge where participants must debug and fix the login authentication system for the Bennett University portal. The issue causes students to be logged out randomly from the attendance system. Test your problem-solving skills by identifying and resolving the bug efficiently.',
         location: 'Electrical Room',
         type: 'coding',
         externalLink: 'https://leetcode.com/problems/design-authentication-manager/'
     },
     {
         title: 'Tech Quest-5',
-       description: 'Tech Quest-5 is a coding challenge where participants must debug and fix the login authentication system for the Bennett University portal. The issue causes students to be logged out randomly from the attendance system. Test your problem-solving skills by identifying and resolving the bug efficiently.',
+        description: 'Tech Quest-5 is a coding challenge where participants must debug and fix the login authentication system for the Bennett University portal. The issue causes students to be logged out randomly from the attendance system. Test your problem-solving skills by identifying and resolving the bug efficiently.',
         location: 'Upper Engine Room',
         type: 'coding',
         externalLink: 'https://leetcode.com/problems/design-authentication-manager/'
     },
     {
         title: 'Tech Quest-6',
-       description: 'Tech Quest-6 is a coding challenge where participants must debug and fix the login authentication system for the Bennett University portal. The issue causes students to be logged out randomly from the attendance system. Test your problem-solving skills by identifying and resolving the bug efficiently.',
+        description: 'Tech Quest-6 is a coding challenge where participants must debug and fix the login authentication system for the Bennett University portal. The issue causes students to be logged out randomly from the attendance system. Test your problem-solving skills by identifying and resolving the bug efficiently.',
         location: 'CCTV Room',
         type: 'coding',
         externalLink: 'https://leetcode.com/problems/design-authentication-manager/'
     },
-   
+
 ];
 
 const PHYSICAL_TASKS = [
-  
+
     {
         title: 'Level the Water',
         description: 'Inspect and report Wi-Fi coverage across campus, focusing on weak zones in the library and hostel areas.',
@@ -343,45 +343,103 @@ function PlayerDashboard() {
             playerId: playerId,  // Use the playerId parameter passed to the function
             completed: 'false',
             approved: 'false',
-            visible: index === 0 ,
+            visible: index === 0,
             order: index + 1
         }));
     };
 
     // Process task response function
-    const processTaskResponse = (response) => {
-        const sortedTasks = response.documents.sort((a, b) => a.order - b.order);
-        const currentTask = sortedTasks.find(task => 
-            (task.visible === true || task.visible === 'true') && 
-            (task.completed === false || task.completed === 'false')
-        );
+   // Process task response function
+const processTaskResponse = (response) => {
+    console.log("Processing task response:", response.documents);
 
-        setCurrentTask(currentTask || null);
+    const sortedTasks = response.documents.sort((a, b) => a.order - b.order);
+    console.log("Sorted tasks:", sortedTasks);
+
+    // Fix: Better handling of boolean/string values for visible and completed
+    const visibleIncompleteTask = sortedTasks.find(task => {
+        // Log more detailed information to help debug
+        console.log(`Task ${task.title}: visible=${task.visible} (${typeof task.visible}), completed=${task.completed} (${typeof task.completed})`);
+        
+        // Check if visible is true (handle both boolean and string representations)
+        const isVisible = task.visible === true || task.visible === 'true';
+        
+        // Check if completed is false (handle both boolean and string representations)
+        const isNotCompleted = task.completed === false || task.completed === 'false';
+        
+        return isVisible && isNotCompleted;
+    });
+
+    console.log("Found current task:", visibleIncompleteTask);
+
+    // If no visible task is found, make the first incomplete task visible
+    if (!visibleIncompleteTask && sortedTasks.length > 0) {
+        console.log("No visible task found, making first incomplete task visible");
+        const firstIncompleteTask = sortedTasks.find(task => 
+            task.completed === false || task.completed === 'false');
+            
+        if (firstIncompleteTask) {
+            console.log("Making task visible:", firstIncompleteTask.title);
+            // Update the task visibility in the database
+            databases.updateDocument(
+                DATABASE_ID,
+                COLLECTIONS.TASKS,
+                firstIncompleteTask.$id,
+                {
+                    visible: true,
+                    playerId: firstIncompleteTask.playerId
+                }
+            ).then(() => {
+                // Set this task as current
+                firstIncompleteTask.visible = true;
+                setCurrentTask(firstIncompleteTask);
+            }).catch(error => {
+                console.error("Failed to update task visibility:", error);
+            });
+            
+            // Update the task in our local array too
+            const updatedTasks = sortedTasks.map(task => 
+                task.$id === firstIncompleteTask.$id ? {...task, visible: true} : task
+            );
+            setTasks(updatedTasks);
+        } else {
+            setCurrentTask(null);
+            setTasks(sortedTasks);
+        }
+    } else {
+        setCurrentTask(visibleIncompleteTask || null);
         setTasks(sortedTasks);
-        setGameStatus(user.playerData.status);
-    };
-
+    }
+    
+    setGameStatus(user.playerData.status);
+};
     // Fetch tasks from database
     const fetchTasks = async () => {
         try {
-            setIsLoading(true); // Add loading state
+            setIsLoading(true);
 
             if (!user?.playerData?.$id) {
                 console.error('No user data available');
                 return;
             }
 
+            console.log("Fetching tasks for player:", user.playerData.$id);
+
             const response = await databases.listDocuments(
                 DATABASE_ID,
                 COLLECTIONS.TASKS,
                 [
                     Query.equal('playerId', user.playerData.$id),
-                    Query.orderAsc('order')  // Add ordering
+                    Query.orderAsc('order')
                 ]
             );
 
+            console.log("Tasks from database:", response.documents);
+
             if (response.documents.length === 0) {
+                console.log("No tasks found, generating initial tasks");
                 const initialTasks = generatePlayerTasks(user.playerData.$id);
+                console.log("Generated initial tasks:", initialTasks);
 
                 const createdTasks = await Promise.all(initialTasks.map(task => {
                     return databases.createDocument(
@@ -403,14 +461,16 @@ function PlayerDashboard() {
                     );
                 }));
 
+                console.log("Created tasks:", createdTasks);
                 processTaskResponse({ documents: createdTasks });
             } else {
+                console.log("Using existing tasks");
                 processTaskResponse(response);
             }
         } catch (error) {
             console.error('Error fetching/creating tasks:', error);
         } finally {
-            setIsLoading(false); // Clear loading state
+            setIsLoading(false);
         }
     };
 
@@ -453,7 +513,7 @@ function PlayerDashboard() {
         };
     }, [user]);
 
-   
+
 
     // Handle task completion
     const handleCompleteTask = async (taskId) => {
@@ -634,17 +694,14 @@ function PlayerDashboard() {
                 <div className="bg-gray-800 rounded-lg p-4">
                     <h2 className="text-xl font-semibold mb-4">Your Tasks</h2>
                     <div className="grid gap-4">
-                        {/* Current Task */}
-                        {currentTask && (
+                        {currentTask ? (
                             <div className="bg-gray-700 rounded-lg p-4">
                                 <div className="flex justify-between items-start">
                                     <div>
                                         <h3 className="text-lg font-semibold">{currentTask.title}</h3>
-                                        <p className="text-gray-400 mt-1">{currentTask.description}</p>
-                                        <p className="text-sm text-white mt-2">
-                                            Location: {currentTask.location} 
-                                        </p>
-                                        {currentTask.externalLink && (
+                                        {/* <p className="text-gray-400 mt-1">{currentTask.description}</p> */}
+                                        <p className="text-sm text-white mt-2">Location: {currentTask.location}</p>
+                                        {/* {currentTask.externalLink && (
                                             <a
                                                 href={currentTask.externalLink}
                                                 target="_blank"
@@ -653,12 +710,10 @@ function PlayerDashboard() {
                                             >
                                                 Start Task
                                             </a>
-                                        )}
+                                        )} */}
                                     </div>
                                     <div className="flex flex-col gap-2 items-end">
-                                        <span className="px-3 py-1 rounded bg-yellow-500">
-                                            Current Task
-                                        </span>
+                                        <span className="px-3 py-1 rounded bg-yellow-500">Current Task</span>
                                         <button
                                             onClick={() => handleCompleteTask(currentTask.$id)}
                                             className="bg-blue-600 px-3 py-1 rounded hover:bg-blue-700 text-sm"
@@ -668,7 +723,20 @@ function PlayerDashboard() {
                                     </div>
                                 </div>
                             </div>
+                        ) : (
+                            <div className="bg-gray-700 rounded-lg p-4 text-center">
+                                <p>No active tasks available</p>
+                                <button
+                                    onClick={fetchTasks}
+                                    className="mt-2 bg-blue-600 px-3 py-1 rounded hover:bg-blue-700 text-sm"
+                                >
+                                    Refresh Tasks
+                                </button>
+                            </div>
                         )}
+                        {/* </div>
+</div> */}
+
 
                         {/* Completed Tasks */}
                         {tasks?.filter(task => task.completed).map((task) => (
