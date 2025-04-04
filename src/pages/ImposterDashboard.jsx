@@ -37,10 +37,10 @@ function ImposterDashboard() {
 
       const alivePlayers = response.documents.filter(p => p.status === 'alive');
       const deadPlayers = response.documents.filter(p => p.status === 'dead');
-      
+
       setPlayers(alivePlayers);
       setEliminatedPlayers(deadPlayers);
-      
+
       setGameStats({
         crewmates: response.documents.filter(p => p.role === 'crewmate' && p.status === 'alive').length,
         imposters: response.documents.filter(p => p.role === 'imposter' && p.status === 'alive').length,
@@ -59,20 +59,20 @@ function ImposterDashboard() {
         COLLECTIONS.PLAYERS,
         playerId
       );
-  
+
       // Update the player while preserving their role
       // Only using attributes that exist in your schema
       await databases.updateDocument(
         DATABASE_ID,
         COLLECTIONS.PLAYERS,
         playerId,
-        { 
+        {
           status: 'dead',
           role: player.role || 'crewmate' // Preserve existing role
           // Removed the killedAt and killedBy attributes that caused the error
         }
       );
-  
+
       // Create a kill event document to track kills instead of adding fields to player
       await databases.createDocument(
         DATABASE_ID,
@@ -84,7 +84,7 @@ function ImposterDashboard() {
           timestamp: new Date().toISOString()
         }
       );
-      
+
       await fetchPlayers();
     } catch (error) {
       console.error('Error killing player:', error);
@@ -95,39 +95,39 @@ function ImposterDashboard() {
     if (emergencyMeetingCooldown) return;
 
     try {
-        await databases.createDocument(
-            DATABASE_ID,
-            COLLECTIONS.EMERGENCY_MEETINGS,
-            ID.unique(),
-            {
-                calledBy: user.playerData.$id,
-                callerName: user.playerData.name,
-                timestamp: new Date().toISOString(),
-                status: 'active',
-                type: 'emergency'
-            }
-        );
+      await databases.createDocument(
+        DATABASE_ID,
+        COLLECTIONS.EMERGENCY_MEETINGS,
+        ID.unique(),
+        {
+          calledBy: user.playerData.$id,
+          callerName: user.playerData.name,
+          timestamp: new Date().toISOString(),
+          status: 'active',
+          type: 'emergency'
+        }
+      );
 
-        setEmergencyMeetingCooldown(true);
-        setTimeout(() => {
-            setEmergencyMeetingCooldown(false);
-        }, 2 * 60 * 1000);
+      setEmergencyMeetingCooldown(true);
+      setTimeout(() => {
+        setEmergencyMeetingCooldown(false);
+      }, 2 * 60 * 1000);
 
     } catch (error) {
-        console.error('Error calling emergency meeting:', error);
-        alert('Failed to call emergency meeting');
+      console.error('Error calling emergency meeting:', error);
+      alert('Failed to call emergency meeting');
     }
-};
+  };
 
   return (
     <div className="min-h-screen bg-gray-900 text-white p-4">
-        <div className="sticky top-0 bg-gray-900 z-50 flex justify-center items-center p-2 shadow-md">
-                <img 
-                    src="/fullarvr.jpeg" 
-                    alt="Game Logo" 
-                    className="h-16 w-auto" 
-                />
-            </div>
+      <div className="sticky top-0 bg-gray-900 z-50 flex justify-center items-center p-2 shadow-md">
+        <img
+          src="/fullarvr.jpeg"
+          alt="Game Logo"
+          className="h-16 w-auto"
+        />
+      </div>
       <div className="max-w-4xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <div>
@@ -138,11 +138,10 @@ function ImposterDashboard() {
             <button
               onClick={handleEmergencyMeeting}
               disabled={emergencyMeetingCooldown}
-              className={`px-4 py-2 rounded ${
-                emergencyMeetingCooldown 
-                  ? 'bg-gray-600 cursor-not-allowed' 
+              className={`px-4 py-2 rounded ${emergencyMeetingCooldown
+                  ? 'bg-gray-600 cursor-not-allowed'
                   : 'bg-yellow-500 hover:bg-yellow-600'
-              }`}
+                }`}
             >
               {emergencyMeetingCooldown ? 'On Cooldown' : 'Emergency Meeting'}
             </button>
@@ -187,8 +186,8 @@ function ImposterDashboard() {
                     <div>
                       <h3 className="text-lg font-semibold">{player.name}</h3>
                       <p className="text-sm text-gray-400">
-                        {player.role === 'imposter' ? 
-                          <span className="text-red-400">Fellow Imposter</span> : 
+                        {player.role === 'imposter' ?
+                          <span className="text-red-400">Fellow Imposter</span> :
                           <span className="text-blue-400">Crewmate</span>
                         }
                       </p>
@@ -213,8 +212,8 @@ function ImposterDashboard() {
                     <div>
                       <h3 className="text-lg font-semibold">{player.name}</h3>
                       <p className="text-sm text-gray-400">
-                        Role: {player.role === 'imposter' ? 
-                          <span className="text-red-400">Fellow Imposter</span> : 
+                        Role: {player.role === 'imposter' ?
+                          <span className="text-red-400">Fellow Imposter</span> :
                           <span className="text-blue-400">Crewmate</span>
                         }
                       </p>
@@ -233,6 +232,12 @@ function ImposterDashboard() {
             </div>
           )}
         </div>
+      </div>
+      <div className="text-center py-4 text-gray-500 text-sm">
+        Made with ❤️ by &nbsp;
+        <a href="https://vaibhavkothari.vercel.app" target="_blank" className="font-semibold text-blue-500 hover:underline">
+          Vaibhav Kothari
+        </a>
       </div>
     </div>
   );

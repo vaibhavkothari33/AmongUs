@@ -7,218 +7,199 @@ import { useNavigate } from 'react-router-dom';
 // Task Categories
 const CODING_TASKS = [
     {
-        title: 'Fix the Authentication Bug',
-        description: 'Debug and fix the login authentication system for the Bennett University portal. The bug is causing students to be logged out randomly from the attendance system.',
-        location: 'IT Support Room',
+        title: 'Tech Quest-1',
+       description: 'Tech Quest-1 is a coding challenge where participants must debug and fix the login authentication system for the Bennett University portal. The issue causes students to be logged out randomly from the attendance system. Test your problem-solving skills by identifying and resolving the bug efficiently.',
+        location: 'Admin Room',
         type: 'coding',
         externalLink: 'https://leetcode.com/problems/design-authentication-manager/'
     },
     {
-        title: 'Optimize Database Queries',
-        description: 'Improve the performance of database queries in the BU Placement Portal to speed up student profile searches.',
-        location: 'Server Room (Admin Block)',
+        title: 'Tech Quest-2',
+        description: 'Tech Quest-2 is a coding challenge where participants must debug and fix the login authentication system for the Bennett University portal. The issue causes students to be logged out randomly from the attendance system. Test your problem-solving skills by identifying and resolving the bug efficiently.',
+        location: 'Navgiation Room',
         type: 'coding',
-        externalLink: 'https://leetcode.com/problems/optimize-table-queries/'
+        externalLink: 'https://leetcode.com/problems/design-authentication-manager/'
     },
     {
-        title: 'Fix Course Registration Errors',
-        description: 'Identify and fix errors in the online course registration system where students are unable to enroll in specific courses.',
-        location: 'Student Affairs Office',
+        title: 'Tech Quest-3',
+       description: 'Tech Quest-3 is a coding challenge where participants must debug and fix the login authentication system for the Bennett University portal. The issue causes students to be logged out randomly from the attendance system. Test your problem-solving skills by identifying and resolving the bug efficiently.',
+        location: 'Storage Room',
         type: 'coding',
-        externalLink: 'https://leetcode.com/problems/course-schedule/'
+        externalLink: 'https://leetcode.com/problems/design-authentication-manager/'
     },
     {
-        title: 'Enhance Library Search System',
-        description: 'Improve the search functionality in the university library system to make book searches faster and more efficient.',
-        location: 'Library IT Room',
+        title: 'Tech Quest-4',
+       description: 'Tech Quest-4 is a coding challenge where participants must debug and fix the login authentication system for the Bennett University portal. The issue causes students to be logged out randomly from the attendance system. Test your problem-solving skills by identifying and resolving the bug efficiently.',
+        location: 'Electrical Room',
         type: 'coding',
-        externalLink: 'https://leetcode.com/problems/search-suggestions-system/'
+        externalLink: 'https://leetcode.com/problems/design-authentication-manager/'
     },
     {
-        title: 'Develop Attendance Analytics Dashboard',
-        description: 'Build a real-time dashboard that provides insights on student attendance trends.',
-        location: 'Admin Block - IT Services',
+        title: 'Tech Quest-5',
+       description: 'Tech Quest-5 is a coding challenge where participants must debug and fix the login authentication system for the Bennett University portal. The issue causes students to be logged out randomly from the attendance system. Test your problem-solving skills by identifying and resolving the bug efficiently.',
+        location: 'Upper Engine Room',
         type: 'coding',
-        externalLink: 'https://d3js.org/'
+        externalLink: 'https://leetcode.com/problems/design-authentication-manager/'
     },
     {
-        title: 'Bug Fix in Exam Scheduler',
-        description: 'Resolve issues in the university’s exam scheduling system where exam clashes occur frequently.',
-        location: 'Examination Cell',
+        title: 'Tech Quest-6',
+       description: 'Tech Quest-6 is a coding challenge where participants must debug and fix the login authentication system for the Bennett University portal. The issue causes students to be logged out randomly from the attendance system. Test your problem-solving skills by identifying and resolving the bug efficiently.',
+        location: 'CCTV Room',
         type: 'coding',
-        externalLink: 'https://leetcode.com/problems/meeting-rooms-ii/'
+        externalLink: 'https://leetcode.com/problems/design-authentication-manager/'
     },
-    {
-        title: 'Implement Dark Mode for Student Portal',
-        description: 'Add a dark mode toggle feature for the student portal UI.',
-        location: 'IT Support Room',
-        type: 'coding',
-        externalLink: 'https://react.dev/'
-    },
-    {
-        title: 'Automate Club Membership Registration',
-        description: 'Create an automated system for club registrations, reducing manual approvals.',
-        location: 'Student Club Office',
-        type: 'coding',
-        externalLink: 'https://github.com/'
-    },
-    {
-        title: 'Improve Placement Dashboard Performance',
-        description: 'Optimize API calls in the Placement Portal to enhance speed and efficiency.',
-        location: 'Career Services Department',
-        type: 'coding',
-        externalLink: 'https://nextjs.org/docs/api-routes/introduction'
-    },
-    {
-        title: 'Integrate Google Authentication',
-        description: 'Add Google sign-in functionality to the university’s online platforms.',
-        location: 'IT Support Room',
-        type: 'coding',
-        externalLink: 'https://firebase.google.com/docs/auth/web/google-signin'
-    }
+   
 ];
 
 const PHYSICAL_TASKS = [
+  
     {
-        title: 'Calibrate Lab Equipment',
-        description: 'Visit the engineering lab and manually calibrate all lab instruments for upcoming practical exams.',
-        location: 'Innovation Lab',
-        type: 'physical',
-        externalLink: 'https://among-us-vk.vercel.app/tasks/calibrate'
-    },
-    {
-        title: 'Check Wi-Fi Connectivity',
+        title: 'Level the Water',
         description: 'Inspect and report Wi-Fi coverage across campus, focusing on weak zones in the library and hostel areas.',
-        location: 'IT Services',
+        location: 'Navgation Room',
         type: 'physical',
         externalLink: 'https://among-us-vk.vercel.app/tasks/electrical'
     },
     {
-        title: 'Rearrange Seating in Lecture Halls',
+        title: 'Pyramid Maker',
         description: 'Help rearrange seats in lecture halls to accommodate a new seating plan for exams.',
-        location: 'Lecture Hall 202',
+        location: 'Lower Enigne',
         type: 'physical',
         externalLink: 'https://bennett.edu.in'
     },
     {
-        title: 'Update Notice Boards',
+        title: 'Sequence Corrector',
         description: 'Replace old notices with new announcements in all major university buildings.',
-        location: 'Admin Block',
+        location: 'O2 room',
         type: 'physical',
         externalLink: 'https://bennett.edu.in'
     },
     {
-        title: 'Test Smart Boards in Classrooms',
+        title: 'Mind Memory',
         description: 'Ensure smart boards in classrooms are working properly before lectures start.',
-        location: 'Academic Block',
+        location: 'O2 Room',
         type: 'physical',
         externalLink: 'https://bennett.edu.in'
     },
     {
-        title: 'Fix Projector Setup in Seminar Hall',
+        title: 'Clock Corrector',
         description: 'Check and fix issues with the projector in the seminar hall before an upcoming event.',
-        location: 'Seminar Hall',
+        location: 'O2 Room',
         type: 'physical',
         externalLink: 'https://bennett.edu.in'
     },
     {
-        title: 'Inventory Check in Labs',
+        title: 'Pyramid Break',
         description: 'Perform an inventory check of lab equipment and note down missing items.',
-        location: 'Physics and Chemistry Labs',
+        location: 'Communication Room',
         type: 'physical',
         externalLink: 'https://bennett.edu.in'
     },
-    {
-        title: 'Report Broken Chairs and Tables',
-        description: 'Identify broken chairs and tables in the common areas and report them for repair.',
-        location: 'Student Lounge',
-        type: 'physical',
-        externalLink: 'https://bennett.edu.in'
-    },
-    {
-        title: 'Monitor Food Quality in Canteen',
-        description: 'Survey and report on the quality of food served in the cafeteria.',
-        location: 'University Cafeteria',
-        type: 'physical',
-        externalLink: 'https://bennett.edu.in'
-    },
-    {
-        title: 'Ensure Hostel Safety Compliance',
-        description: 'Inspect hostel premises for any safety hazards and ensure emergency exits are accessible.',
-        location: 'Hostel Blocks',
-        type: 'physical',
-        externalLink: 'https://bennett.edu.in'
-    }
 ];
 
 const EXTERNAL_TASKS = [
     {
-        title: 'Complete Cybersecurity Training',
+        title: 'Space Debris',
+        description: 'Visit the engineering lab and manually calibrate all lab instruments for upcoming practical exams.',
+        location: 'Admin Room',
+        type: 'external',
+        externalLink: 'https://among-us-vk.vercel.app/tasks/calibrate'
+    },
+    {
+        title: 'Shield',
+        description: 'Visit the engineering lab and manually calibrate all lab instruments for upcoming practical exams.',
+        location: 'Admin Room',
+        type: 'external',
+        externalLink: 'https://among-us-vk.vercel.app/tasks/calibrate'
+    },
+    {
+        title: 'Cards Swipe',
         description: 'Take the mandatory cybersecurity awareness training course for students accessing the university’s network.',
-        location: 'Learning Management System (LMS)',
+        location: 'Lower Engine Room',
         type: 'external',
         externalLink: 'https://www.hackerrank.com/skills-verification/security'
     },
     {
-        title: 'Review University System Architecture',
+        title: 'Bhool bhulaiyaa-1',
         description: 'Analyze and document the architecture of the Bennett University internal systems, focusing on the student portal and exam registration process.',
-        location: 'Admin Block (IT Department)',
+        location: 'CCTV Room',
         type: 'external',
         externalLink: 'https://www.coursera.org/learn/system-architecture'
     },
     {
-        title: 'Participate in an Open Source Contribution Event',
+        title: 'Click Bait',
         description: 'Contribute to an open-source project related to education or university management.',
-        location: 'Online',
+        location: 'Weapons Room',
         type: 'external',
         externalLink: 'https://github.com/explore'
     },
     {
-        title: 'Earn AWS Certification',
+        title: 'Daalchini-1',
         description: 'Complete AWS cloud training and obtain certification for better job prospects.',
-        location: 'Online',
+        location: 'Navgation Room',
         type: 'external',
         externalLink: 'https://aws.amazon.com/certification/'
     },
     {
-        title: 'Attend a Web Development Webinar',
+        title: 'Daalchini-2',
+        description: 'Complete AWS cloud training and obtain certification for better job prospects.',
+        location: 'Upper Engine Room',
+        type: 'external',
+        externalLink: 'https://aws.amazon.com/certification/'
+    },
+    {
+        title: 'Bhool bhulaiyaa-2',
         description: 'Join an online webinar on the latest web development trends and best practices.',
-        location: 'Online',
+        location: 'Electrical Room',
         type: 'external',
         externalLink: 'https://frontendmasters.com/'
     },
     {
-        title: 'Complete a Coursera Data Science Course',
+        title: 'Bhool bhulaiyaa-3',
         description: 'Take an introductory course on data science and apply your learning in a mini-project.',
-        location: 'Online',
+        location: 'Weapons Room',
         type: 'external',
         externalLink: 'https://www.coursera.org/specializations/data-science-python'
     },
     {
-        title: 'Write a Technical Blog on Medium',
+        title: 'Fix the Wire-1',
         description: 'Publish a technical blog post on a trending topic in software development.',
-        location: 'Online',
+        location: 'Electrical Room',
         type: 'external',
         externalLink: 'https://medium.com/'
     },
     {
-        title: 'Watch a TED Talk on Innovation',
+        title: 'Crack the Code',
+        description: 'Publish a technical blog post on a trending topic in software development.',
+        location: 'Weapons',
+        type: 'external',
+        externalLink: 'https://medium.com/'
+    },
+    {
+        title: 'Fix the Wire-2',
         description: 'Watch and summarize a TED Talk on innovation and technology.',
-        location: 'Online',
+        location: 'Communation Room',
         type: 'external',
         externalLink: 'https://www.ted.com/talks'
     },
     {
-        title: 'Complete a UI/UX Design Challenge',
+        title: 'Download it',
         description: 'Participate in an online UI/UX design challenge and submit your design.',
-        location: 'Online',
+        location: 'Communication Room',
         type: 'external',
         externalLink: 'https://www.uxtools.co/challenges'
     },
     {
-        title: 'Enroll in a Competitive Programming Course',
+        title: 'Tranfer It',
         description: 'Join a competitive programming course and solve at least 10 problems.',
-        location: 'Online',
+        location: 'Upper Engine Room',
+        type: 'external',
+        externalLink: 'https://www.codechef.com/certification/data-structures-and-algorithms/prepare'
+    },
+    {
+        title: 'Temperature Check',
+        description: 'Join a competitive programming course and solve at least 10 problems.',
+        location: 'Storage Room',
         type: 'external',
         externalLink: 'https://www.codechef.com/certification/data-structures-and-algorithms/prepare'
     }
@@ -281,7 +262,7 @@ function PlayerDashboard() {
     // Single subscription for emergency meeting events
     useEffect(() => {
         console.log("Setting up emergency meeting subscription");
-        
+
         const unsubscribe = client.subscribe(
             [`databases.${DATABASE_ID}.collections.${COLLECTIONS.EVENTS}.documents`],
             (response) => {
@@ -291,7 +272,7 @@ function PlayerDashboard() {
 
                 if (validEvents.some(event => response.events.includes(event))) {
                     const payload = response.payload;
-                    
+
                     if (payload.type === 'emergency_meeting' && payload.status === 'active') {
                         // Play meeting sound
                         const audio = new Audio('/meeting.mp3');
@@ -302,7 +283,7 @@ function PlayerDashboard() {
                         const overlay = document.createElement('div');
                         overlay.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50';
                         overlay.style.backdropFilter = 'blur(5px)';
-                        
+
                         const modal = document.createElement('div');
                         modal.className = 'bg-red-600 p-8 rounded-lg text-center max-w-md mx-4 animate-bounce';
                         modal.innerHTML = `
@@ -311,7 +292,7 @@ function PlayerDashboard() {
                             <p class="text-xl">All players must report immediately!</p>
                             <div class="mt-6 text-3xl font-bold countdown">10</div>
                         `;
-                        
+
                         overlay.appendChild(modal);
                         document.body.appendChild(overlay);
 
@@ -346,13 +327,13 @@ function PlayerDashboard() {
             console.error('No playerId provided to generatePlayerTasks');
             return [];
         }
-    
+
         const allTasks = [
             CODING_TASKS[Math.floor(Math.random() * CODING_TASKS.length)],
             PHYSICAL_TASKS[Math.floor(Math.random() * PHYSICAL_TASKS.length)],
             EXTERNAL_TASKS[Math.floor(Math.random() * EXTERNAL_TASKS.length)]
         ];
-    
+
         return allTasks.map((task, index) => ({
             title: task.title,
             description: task.description,
@@ -362,7 +343,7 @@ function PlayerDashboard() {
             playerId: playerId,  // Use the playerId parameter passed to the function
             completed: 'false',
             approved: 'false',
-            visible: index === 0 ? 'true' : 'false',
+            visible: index === 0 ,
             order: index + 1
         }));
     };
@@ -370,8 +351,9 @@ function PlayerDashboard() {
     // Process task response function
     const processTaskResponse = (response) => {
         const sortedTasks = response.documents.sort((a, b) => a.order - b.order);
-        const currentTask = sortedTasks.find(task =>
-            task.visible === true && task.completed === false
+        const currentTask = sortedTasks.find(task => 
+            (task.visible === true || task.visible === 'true') && 
+            (task.completed === false || task.completed === 'false')
         );
 
         setCurrentTask(currentTask || null);
@@ -382,53 +364,53 @@ function PlayerDashboard() {
     // Fetch tasks from database
     const fetchTasks = async () => {
         try {
-          setIsLoading(true); // Add loading state
-          
-          if (!user?.playerData?.$id) {
-            console.error('No user data available');
-            return;
-          }
+            setIsLoading(true); // Add loading state
 
-          const response = await databases.listDocuments(
-            DATABASE_ID,
-            COLLECTIONS.TASKS,
-            [
-              Query.equal('playerId', user.playerData.$id),
-              Query.orderAsc('order')  // Add ordering
-            ]
-          );
-      
-          if (response.documents.length === 0) {
-            const initialTasks = generatePlayerTasks(user.playerData.$id);
-            
-            const createdTasks = await Promise.all(initialTasks.map(task => {
-              return databases.createDocument(
+            if (!user?.playerData?.$id) {
+                console.error('No user data available');
+                return;
+            }
+
+            const response = await databases.listDocuments(
                 DATABASE_ID,
                 COLLECTIONS.TASKS,
-                ID.unique(),
-                {
-                  playerId: user.playerData.$id,
-                  title: task.title,
-                  description: task.description,
-                  location: task.location,
-                  type: task.type,
-                  approved: false,
-                  visible: task.visible === 'true',
-                  order: parseInt(task.order),
-                  externalLink: task.externalLink || 'https://among-us-vk.vercel.app',
-                  completed: false
-                }
-              );
-            }));
-            
-            processTaskResponse({ documents: createdTasks });
-          } else {
-            processTaskResponse(response);
-          }
+                [
+                    Query.equal('playerId', user.playerData.$id),
+                    Query.orderAsc('order')  // Add ordering
+                ]
+            );
+
+            if (response.documents.length === 0) {
+                const initialTasks = generatePlayerTasks(user.playerData.$id);
+
+                const createdTasks = await Promise.all(initialTasks.map(task => {
+                    return databases.createDocument(
+                        DATABASE_ID,
+                        COLLECTIONS.TASKS,
+                        ID.unique(),
+                        {
+                            playerId: user.playerData.$id,
+                            title: task.title,
+                            description: task.description,
+                            location: task.location,
+                            type: task.type,
+                            approved: false,
+                            visible: task.visible === 'true',
+                            order: parseInt(task.order),
+                            externalLink: task.externalLink || 'https://among-us-vk.vercel.app',
+                            completed: false
+                        }
+                    );
+                }));
+
+                processTaskResponse({ documents: createdTasks });
+            } else {
+                processTaskResponse(response);
+            }
         } catch (error) {
-          console.error('Error fetching/creating tasks:', error);
+            console.error('Error fetching/creating tasks:', error);
         } finally {
-          setIsLoading(false); // Clear loading state
+            setIsLoading(false); // Clear loading state
         }
     };
 
@@ -438,7 +420,7 @@ function PlayerDashboard() {
 
         let retryCount = 0;
         const maxRetries = 3;
-        
+
         const setupSubscription = async () => {
             try {
                 const unsubscribe = client.subscribe([
@@ -463,7 +445,7 @@ function PlayerDashboard() {
         };
 
         const subscription = setupSubscription();
-        
+
         return () => {
             if (subscription) {
                 subscription.then(unsubscribe => unsubscribe && unsubscribe());
@@ -471,29 +453,7 @@ function PlayerDashboard() {
         };
     }, [user]);
 
-    const completeTask = async (taskId) => {
-        try {
-          const updatedTask = await databases.updateDocument(
-            DATABASE_ID,
-            COLLECTIONS.TASKS,
-            taskId,
-            {
-              completed: true  // Changed from 'true' to true
-            }
-          );
-          
-          setTasks(prevTasks => 
-            prevTasks.map(task => 
-              task.$id === taskId ? {...task, completed: true} : task
-            )
-          );
-          
-          return updatedTask;
-        } catch (error) {
-          console.error('Error completing task:', error);
-          throw error;
-        }
-    };
+   
 
     // Handle task completion
     const handleCompleteTask = async (taskId) => {
@@ -503,7 +463,7 @@ function PlayerDashboard() {
                 DATABASE_ID,
                 COLLECTIONS.TASKS,
                 taskId,
-                { 
+                {
                     completed: true,  // Changed from 'true' to true
                     playerId: user.playerData.$id
                 }
@@ -512,13 +472,13 @@ function PlayerDashboard() {
             // Find the next task in order and make it visible
             const completedTaskIndex = tasks.findIndex(task => task.$id === taskId);
             const nextTask = tasks[completedTaskIndex + 1];
-            
+
             if (nextTask) {
                 await databases.updateDocument(
                     DATABASE_ID,
                     COLLECTIONS.TASKS,
                     nextTask.$id,
-                    { 
+                    {
                         visible: true,  // Changed from 'true' to true
                         playerId: user.playerData.$id
                     }
@@ -551,7 +511,7 @@ function PlayerDashboard() {
         }
 
         console.log("Setting up player status subscription for:", user.playerData.$id);
-        
+
         const unsubscribe = client.subscribe([
             `databases.${DATABASE_ID}.collections.${COLLECTIONS.PLAYERS}.documents`,
         ], (response) => {
@@ -559,7 +519,7 @@ function PlayerDashboard() {
                 if (user?.playerData?.$id === response.payload.$id) {
                     console.log("Received player update:", response.payload);
                     setGameStatus(response.payload.status);
-                    
+
                     if (response.payload.status === 'dead') {
                         navigate('/spectator');
                     } else if (response.payload.role === 'imposter') {
@@ -568,7 +528,7 @@ function PlayerDashboard() {
                 }
             }
         });
-    
+
         return () => {
             console.log("Unsubscribing from player updates");
             unsubscribe();
@@ -583,7 +543,7 @@ function PlayerDashboard() {
         }
 
         console.log("Setting up task subscription for player:", user.playerData.$id);
-        
+
         const taskSubscription = client.subscribe([
             `databases.${DATABASE_ID}.collections.${COLLECTIONS.TASKS}.documents`,
         ], (response) => {
@@ -595,7 +555,7 @@ function PlayerDashboard() {
                 }
             }
         });
-    
+
         return () => {
             console.log("Unsubscribing from task updates");
             taskSubscription();
@@ -612,11 +572,11 @@ function PlayerDashboard() {
 
     return (
         <div className="min-h-screen bg-gray-900 text-white p-4">
-             <div className="sticky top-0 bg-gray-900 z-50 flex justify-center items-center p-2 shadow-md">
-                <img 
-                    src="/fullarvr.jpeg" 
-                    alt="Game Logo" 
-                    className="h-16 w-auto" 
+            <div className="sticky top-0 bg-gray-900 z-50 flex justify-center items-center p-2 shadow-md">
+                <img
+                    src="/fullarvr.jpeg"
+                    alt="Game Logo"
+                    className="h-16 w-auto"
                 />
             </div>
             <div className="max-w-4xl mx-auto">
@@ -657,14 +617,13 @@ function PlayerDashboard() {
                             <button
                                 onClick={handleEmergencyMeeting}
                                 disabled={emergencyMeetingCooldown > 0}
-                                className={`px-4 py-2 rounded ${
-                                    emergencyMeetingCooldown > 0 
-                                        ? 'bg-gray-600 cursor-not-allowed' 
-                                        : 'bg-red-600 hover:bg-red-700'
-                                }`}
+                                className={`px-4 py-2 rounded ${emergencyMeetingCooldown > 0
+                                    ? 'bg-gray-600 cursor-not-allowed'
+                                    : 'bg-red-600 hover:bg-red-700'
+                                    }`}
                             >
-                                {emergencyMeetingCooldown > 0 
-                                    ? `Cooldown (${emergencyMeetingCooldown}s)` 
+                                {emergencyMeetingCooldown > 0
+                                    ? `Cooldown (${emergencyMeetingCooldown}s)`
                                     : 'Call Emergency Meeting'}
                             </button>
                         )}
@@ -682,8 +641,8 @@ function PlayerDashboard() {
                                     <div>
                                         <h3 className="text-lg font-semibold">{currentTask.title}</h3>
                                         <p className="text-gray-400 mt-1">{currentTask.description}</p>
-                                        <p className="text-sm text-gray-500 mt-2">
-                                            Location: {currentTask.location} | Type: {currentTask.type}
+                                        <p className="text-sm text-white mt-2">
+                                            Location: {currentTask.location} 
                                         </p>
                                         {currentTask.externalLink && (
                                             <a
@@ -732,6 +691,12 @@ function PlayerDashboard() {
                         ))}
                     </div>
                 </div>
+            </div>
+            <div className="text-center py-4 text-gray-500 text-sm">
+                Made with ❤️ by &nbsp;
+                <a href="https://vaibhavkothari.vercel.app" target="_blank" className="font-semibold text-blue-500 hover:underline">
+                    Vaibhav Kothari
+                </a>
             </div>
         </div>
     );
